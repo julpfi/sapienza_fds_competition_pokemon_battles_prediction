@@ -18,15 +18,15 @@ conda env export --from-history > environment.yml
 
 3. Manual cleanup (important!)
 Open environment.yml and:
- - Remove "prefix:" line at the end
- - Ensure pip section is still there with "-e ."
+- Remove "prefix:" line at the end
+- Ensure pip section is still there with "-e ."
 
 4. Commit
-git add environment.yml
-git commit -m "Add <package-name> dependency"
-git push
+- git add environment.yml
+- git commit -m "Add <package-name> dependency"
+- git push
 
 ## Taking over anaconda environment changes from others
-git pull
-conda activate sapienza_fds_pokemon
-conda env update -f environment.yml --prune
+- git pull
+- conda activate sapienza_fds_pokemon
+- conda env update -f environment.yml --prune
