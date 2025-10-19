@@ -277,4 +277,5 @@ dependencies:
       - protobuf==6.33.0
       - python-slugify==8.0.4
       - text-unidecode==1.3
+      - -e .
 prefix: /home/julius/anaconda3/envs/sapienza_fds_pokemon
