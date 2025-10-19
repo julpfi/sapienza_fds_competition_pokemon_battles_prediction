@@ -9,9 +9,9 @@
 2. Activate environment
 * conda activate sapienza_fds_pokemon
 
-## Adding library to anaconda environment
-1. Install
-* conda install -c conda-forge <package-name>
+## Adding package to anaconda environment
+1. Install package
+* conda install -c conda-forge "package-name"
 
 2. Update environment.yml
 * conda env export --from-history > environment.yml
@@ -23,7 +23,7 @@ Open environment.yml and:
 
 4. Commit
 * git add environment.yml
-* git commit -m "Add <package-name> dependency"
+* git commit -m "Add "package-name" package"
 * git push
 
 ## Taking over anaconda environment changes from others
