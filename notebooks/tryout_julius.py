@@ -1,4 +1,3 @@
-import src.utils as utils
+from src.utils import config
 
-print(utils.SEED)
-
+print(config.SEED)
