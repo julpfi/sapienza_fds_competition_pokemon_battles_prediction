@@ -30,8 +30,39 @@ try:
             print("    ...")
             print("    (battle_timeline has been truncated for display)")
 
+        print(first_battle['p2_lead_details'].keys())
+        # One battle: dict of 
+        #   'player_won' 
+        #   'p1_team_details' - list (team of pokemons) of dict of 
+        #       'name' 
+        #       'level'
+        #       'types'
+        #       'base_hp'
+        #       'base_atk'
+        #       'base_def'
+        #       'base_spa'
+        #       'base_spd'
+        #       'base_spe'
+        #   'p2_lead_details' - dict (one pokemon) of 
+        #       'name'
+        #       'level'
+        #       'types'
+        #       'base_hp' 
+        #       'base_atk'
+        #       'base_def'
+        #       'base_spa'
+        #       'base_spd'
+        #       'base_spe' 
+        #   'battle_timeline' - list of dict of 
+        #       'turn' 
+        #       'p1_pokemon_state'
+        #       'p1_move_details'   
+        #       'p2_pokemon_state'
+        #       'p2_move_details' 
+        #   'battle_id'
+
+
 
 except FileNotFoundError:
     print(f"ERROR: Could not find the training file at '{config.DATA_TRAIN_PATH}'.")
     print("Please make sure you have added the competition data to this notebook.")
-
