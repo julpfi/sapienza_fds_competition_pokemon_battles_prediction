@@ -18,3 +18,7 @@ build/
 # OS-spezifisch
 .DS_Store
 Thumbs.db
+
+# Kaggle credentials
+kaggle.json
+.kaggle/
