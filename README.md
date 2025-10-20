@@ -1,5 +1,5 @@
 # sapienza_fds_competition_pokemon_battles_prediction
-## Team: Julius Pfingsten, Ludovido Piras, and Nicolo Boscherini
+## Team: Julius Pfingsten, Ludovico Piras, and Nicolò Boscherini
 
 ## Setting up Anaconda Environment
 
