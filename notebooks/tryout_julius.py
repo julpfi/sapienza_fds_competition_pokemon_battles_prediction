@@ -30,14 +30,14 @@ try:
             print("    ...")
             print("    (battle_timeline has been truncated for display)")
 
-        print(first_battle['p2_lead_details'].keys())
+        print(type(first_battle['p2_lead_details']['base_hp']))
         # One battle: dict of 
-        #   'player_won' 
+        #   'player_won' - boolean
         #   'p1_team_details' - list (team of pokemons) of dict of 
         #       'name' 
         #       'level'
-        #       'types'
-        #       'base_hp'
+        #       'types' - list of strings
+        #       'base_hp' - all values are int
         #       'base_atk'
         #       'base_def'
         #       'base_spa'
@@ -46,7 +46,7 @@ try:
         #   'p2_lead_details' - dict (one pokemon) of 
         #       'name'
         #       'level'
-        #       'types'
+        #       'types' - list of strings
         #       'base_hp' 
         #       'base_atk'
         #       'base_def'
