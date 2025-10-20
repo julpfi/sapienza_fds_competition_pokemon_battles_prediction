@@ -15,3 +15,5 @@ def load_raw_data() -> list:
     return train_data
 
 def load_data():
+    data_raw = load_raw_data()
+    return data_raw
