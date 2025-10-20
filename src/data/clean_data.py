@@ -1,31 +1,19 @@
 from src.utils import config
+from data.load_data import load_data 
 import json
 import pandas as pd
-
-def load_raw_data() -> list:
-    print(f"Loading raw data from '{config.DATA_TRAIN_PATH}'...")
-    train_data = []
-    try:
-        with open(config.DATA_TRAIN_PATH, 'r') as f:
-            for line in f:
-                train_data.append(json.loads(line))
-    except FileNotFoundError:
-        print(f"ERROR: Could not find the training file at '{config.DATA_TRAIN_PATH}'.")
-    return train_data
-
 
 
 
 def clean_data():
     # Executes all necessary functins from above
 
-    train_data = load_raw_data()
-
-    print(train_data[4877])
+    train_data = load_data()
 
     # Somewhere, where we acutally clean data, we need to drop the flawed record row: 4877 
+    # Not sure which one is actually the flawed record
+    print(train_data[4877])
     print("PLACEHOLDER")
 
-clean_data()
 
  
