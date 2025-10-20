@@ -6,9 +6,9 @@ import json
 train_data = []
 
 # Read the file line by line
-print(f"Loading data from '{config.DATA_TRAIN_PATH}'...")
+print(f"Loading data from '{config.DATA_TEST_PATH}'...")
 try:
-    with open(config.DATA_TRAIN_PATH, 'r') as f:
+    with open(config.DATA_TEST_PATH, 'r') as f:
         for line in f:
             # json.loads() parses one line (one JSON object) into a Python dictionary
             train_data.append(json.loads(line))

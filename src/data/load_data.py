@@ -3,17 +3,24 @@ import json
 import pandas as pd
 
 
-def load_raw_data() -> list:
-    print(f"Loading raw data from '{config.DATA_TRAIN_PATH}'...")
+def load_raw_data(train) -> list:
+    path = config.DATA_TRAIN_PATH if train else config.DATA_TEST_PATH 
+    print(f"Loading raw data from '{path}'...")
     train_data = []
     try:
-        with open(config.DATA_TRAIN_PATH, 'r') as f:
+        with open(path, 'r') as f:
             for line in f:
                 train_data.append(json.loads(line))
     except FileNotFoundError:
-        print(f"ERROR: Could not find the training file at '{config.DATA_TRAIN_PATH}'.")
+        print(f"ERROR: Could not find the training file at '{path}'.")
     return train_data
 
-def load_data():
-    data_raw = load_raw_data()
+def load_data(train: bool=True):
+    '''
+    Wrapper: Loads the raw data from the folder /data/raw 
+    Param:
+        train: Boolean - Selectes either the training data for training the model 
+            or the test data for predicting the results and submitting   
+    '''
+    data_raw = load_raw_data(train)
     return data_raw
