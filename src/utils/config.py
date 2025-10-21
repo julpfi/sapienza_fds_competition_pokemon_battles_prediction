@@ -14,5 +14,5 @@ SEED = 1019
 
 # constants: 
 # Need to check if attacks have more types -> 
-POKEMON_TYPES = ['water', 'grass', 'fire', 'psychic', 'rock', 'ice', 'ground', 'flying', 'normal', 'dragon', 'notype', 'electric', 'poison', 'ghost']
+POKEMON_TYPES = ['normal', 'fire', 'water', 'grass', 'fighting', 'ice', 'notype', 'electric', 'flying', 'psychic', 'ghost', 'poison', 'ground', 'dragon', 'rock']
 MOVE_CATEGORIES = ['SPECIAL', 'PHYSICAL', 'STATUS']
