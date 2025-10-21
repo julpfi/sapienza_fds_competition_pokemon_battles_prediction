@@ -1,4 +1,5 @@
 from data.load_data import load_data 
+from utils.config import POKEMON_TYPES
 import pandas as pd
 
 
@@ -7,13 +8,19 @@ def extract_battles_df(raw_data:list, train: bool=True) -> pd.DataFrame:
 
     for x in raw_data:
         battle = {"battle_id": x["battle_id"]}
-        battle["player_won"]  =  x["player_won"] if train else None  # placeholder for test set
+        battle["player_won"] = x["player_won"] if train and "player_won" in x else None
 
         for key, val in x["p2_lead_details"].items():
-            battle[f"p2_lead_{key}"] = val
+            if key == "types" and isinstance(val, list):
+                for t in POKEMON_TYPES:
+                    battle[f"p2_lead_type_{t}"] = int(t in val)
+            else:
+                battle[f"p2_lead_{key}"] = val
 
         battles.append(battle)
-    return  pd.DataFrame(battles)
+
+    return pd.DataFrame(battles)
+
 
 def extract_turns_df(raw_data: list) -> pd.DataFrame: 
     turns = []
@@ -27,15 +34,26 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
     return pd.DataFrame(turns)
     
 def extract_teams_df(raw_data: list) -> pd.DataFrame: 
-    teams = []
-    for x in raw_data: 
-        team = {"battle_id": x["battle_id"]}
-        for nr, pokemon in enumerate(x["p1_team_details"]): 
-            for key, val in pokemon.items():
-                team[f"p1_{nr}_{key}"] = val
+    team_pokemons = []
+    for x in raw_data:
+        battle_id = x["battle_id"]
+        for nr, pokemon in enumerate(x["p1_team_details"]):
+            team_pokemon = {
+                "battle_id": battle_id,
+                "pokemon_nr": nr,
+            }
 
-        teams.append(team)
-    return pd.DataFrame(teams)
+            for key, val in pokemon.items():
+                if key == "types" and isinstance(val, list):
+                    for t in POKEMON_TYPES:
+                        team_pokemon[f"type_{t}"] = int(t in val)
+                else:
+                    team_pokemon[key] = val
+
+            team_pokemons.append(team_pokemon)
+
+    return pd.DataFrame(team_pokemons)
+
 
 
 def clean_data(train: bool=True):
