@@ -1,5 +1,5 @@
-from data.load_data import load_data 
-from utils.config import POKEMON_TYPES
+from load_data import load_data 
+from src.utils.config import POKEMON_TYPES
 import pandas as pd
 
 
@@ -56,7 +56,7 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
             # IDEA: Could split turns into p1 and p2? 
 
             # 1. Player 1 pokemon state: Flatten data and handle collections
-            p1_pokemon_state = t["p1_pokemon_state"]
+            p1_pokemon_state = t.get("p1_pokemon_state") or {}
             for key, val in p1_pokemon_state.items():
                 if key == "effects": 
                     turn[f"p1_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
@@ -67,12 +67,12 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
                     turn[f"p1_pokemon_state_{key}"] = val
                          
             # 2. Flatten player 1 move details 
-            p1_move_details = t["p1_move_details"]
+            p1_move_details = t.get("p1_move_details") or {}
             for key, val in p1_move_details.items():
                 turn[f"p1_move_details_{key}"] = val
             
             # 3. Player 2 pokemon state: Flatten data and handle collections
-            p2_pokemon_state = t["p2_pokemon_state"]
+            p2_pokemon_state = t.get("p2_pokemon_state") or {}
             for key, val in p2_pokemon_state.items():
                 if key == "effects": 
                     turn[f"p2_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
@@ -83,29 +83,12 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
                     turn[f"p2_pokemon_state_{key}"] = val
 
             # 4. Flatten player 2 move details 
-            p2_move_details = t["p2_move_details"]
+            p2_move_details = t.get("p2_move_details") or {}
             for key, val in p2_move_details.items():
                 turn[f"p2_move_details_{key}"] = val
 
-
             turns.append(turn)
 
-
-    '''
-    
-    {'turn': 16, 
-        'p1_pokemon_state': 
-            {'name': 'gengar', 'hp_pct': 0.66, 'status': 'nostatus', 
-                'effects': ['noeffect'], 
-                'boosts': {'atk': 0, 'def': 0, 'spa': 0, 'spd': 0, 'spe': 0}}, 
-        'p1_move_details': 
-            {'name': 'thunderbolt', 'type': 'ELECTRIC', 'category': 'SPECIAL', 'base_power': 95, 'accuracy': 1.0, 'priority': 0}, 
-        'p2_pokemon_state': 
-            {'name': 'lapras', 'hp_pct': 0.37, 'status': 'nostatus', 'effects': ['noeffect'], 'boosts': {'atk': 0, 'def': 0, 'spa': 0, 'spd': 0, 'spe': 0}}, 
-        'p2_move_details': 
-            {'name': 'blizzard', 'type': 'ICE', 'category': 'SPECIAL', 'base_power': 120, 'accuracy': 0.9, 'priority': 0}
-            }
-    '''
     return pd.DataFrame(turns)
 
 
@@ -160,10 +143,17 @@ def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
 
     # Somewhere, where we acutally clean data, we need to drop the flawed record row: 4877 
     # Not sure which one is actually the flawed record
-    print(data[4877])
+    # print(data[4877])
     print("PLACEHOLDER")
-
+    
     return battles, turns, teams
 
 
+battles, turns, teams = clean_data()
+print("BATTLES:")
+print(battles.head())
+print("TURNS:")
+print(turns.head())
+print("TEAMS:")
+print(teams.head())
  
