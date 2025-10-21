@@ -69,7 +69,10 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
             # 2. Flatten player 1 move details 
             p1_move_details = t.get("p1_move_details") or {}
             for key, val in p1_move_details.items():
-                turn[f"p1_move_details_{key}"] = val
+                if key == "type": 
+                    turn[f"p1_move_details_{key}"] = str.lower(val)
+                else: 
+                    turn[f"p1_move_details_{key}"] = val
             
             # 3. Player 2 pokemon state: Flatten data and handle collections
             p2_pokemon_state = t.get("p2_pokemon_state") or {}
@@ -78,14 +81,17 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
                     turn[f"p2_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
                 elif key == "boosts" and isinstance(val, dict):
                     for boost_name, boost_stat in val.items(): 
-                        turn[f"p2_pokemon_state_boost_{boost_name}"] = boost_stat
+                        turn[f"p2_pokemon_state_boost_{boost_name}"] = boost_stat 
                 else: 
                     turn[f"p2_pokemon_state_{key}"] = val
 
             # 4. Flatten player 2 move details 
             p2_move_details = t.get("p2_move_details") or {}
             for key, val in p2_move_details.items():
-                turn[f"p2_move_details_{key}"] = val
+                if key == "type": 
+                    turn[f"p2_move_details_{key}"] = str.lower(val)
+                else: 
+                    turn[f"p2_move_details_{key}"] = val
 
             turns.append(turn)
 
@@ -166,9 +172,9 @@ def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
     
     return battles, turns, teams
 
-
-battles, turns, teams = clean_data()
 '''
+battles, turns, teams = clean_data()
+
 print("BATTLES:")
 print(battles.head())
 print(battles.info())
@@ -180,8 +186,8 @@ print("TURNS:")
 print(turns.head())
 print("TEAMS:")
 print(teams.head())
- '''
-
+ 
+print(turns.head())
 
 print(turns.info())
 print()
@@ -190,5 +196,5 @@ print()
 print(turns.nunique())
 print()
 print(turns.isnull().sum())
-
+'''
 
