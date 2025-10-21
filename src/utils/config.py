@@ -13,6 +13,5 @@ SUBMISSION_DIR = "submissions/"
 SEED = 1019
 
 # constants: 
-# Need to check if attacks have more types -> 
 POKEMON_TYPES = ['normal', 'fire', 'water', 'grass', 'fighting', 'ice', 'notype', 'electric', 'flying', 'psychic', 'ghost', 'poison', 'ground', 'dragon', 'rock']
 MOVE_CATEGORIES = ['SPECIAL', 'PHYSICAL', 'STATUS']
