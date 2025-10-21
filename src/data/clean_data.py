@@ -32,15 +32,80 @@ def extract_battles_df(raw_data:list, train: bool=True) -> pd.DataFrame:
 
 
 def extract_turns_df(raw_data: list) -> pd.DataFrame: 
+    '''
+    Description: 
+        Extracts the turns of each battles (primary key: battle_id, turn)
+        This method flattens all the pokemon states and move details of player one and two plus the boosts in the pokemon states
+    Param: 
+        list: raw_data that contains the read battles 
+    Return: 
+        Pandas Dataframe with the described records
+    '''
     turns = []
+    # Loops over all the battles in the raw data 
     for x in raw_data:
+        battle_id = x["battle_id"]
+        
+        # Loops over every turn in each battle
         for t in x["battle_timeline"]:
-            turn = {"battle_id": x["battle_id"]}
-            for key, val in t.items():
-                turn[f"p2_lead_{key}"] = val
+            turn = {
+                "battle_id":  battle_id, 
+                "turn":  t["turn"]
+            }
+
+            # IDEA: Could split turns into p1 and p2? 
+
+            # 1. Player 1 pokemon state: Flatten data and handle collections
+            p1_pokemon_state = t["p1_pokemon_state"]
+            for key, val in p1_pokemon_state.items():
+                if key == "effects": 
+                    turn[f"p1_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
+                elif key == "boosts"  and isinstance(val, dict):
+                    for boost_name, boost_stat in val.items(): 
+                        turn[f"p1_pokemon_state_boost_{boost_name}"] = boost_stat
+                else: 
+                    turn[f"p1_pokemon_state_{key}"] = val
+                         
+            # 2. Flatten player 1 move details 
+            p1_move_details = t["p1_move_details"]
+            for key, val in p1_move_details.items():
+                turn[f"p1_move_details_{key}"] = val
+            
+            # 3. Player 2 pokemon state: Flatten data and handle collections
+            p2_pokemon_state = t["p2_pokemon_state"]
+            for key, val in p2_pokemon_state.items():
+                if key == "effects": 
+                    turn[f"p2_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
+                elif key == "boosts" and isinstance(val, dict):
+                    for boost_name, boost_stat in val.items(): 
+                        turn[f"p2_pokemon_state_boost_{boost_name}"] = boost_stat
+                else: 
+                    turn[f"p2_pokemon_state_{key}"] = val
+
+            # 4. Flatten player 2 move details 
+            p2_move_details = t["p2_move_details"]
+            for key, val in p2_move_details.items():
+                turn[f"p2_move_details_{key}"] = val
+
 
             turns.append(turn)
 
+
+    '''
+    
+    {'turn': 16, 
+        'p1_pokemon_state': 
+            {'name': 'gengar', 'hp_pct': 0.66, 'status': 'nostatus', 
+                'effects': ['noeffect'], 
+                'boosts': {'atk': 0, 'def': 0, 'spa': 0, 'spd': 0, 'spe': 0}}, 
+        'p1_move_details': 
+            {'name': 'thunderbolt', 'type': 'ELECTRIC', 'category': 'SPECIAL', 'base_power': 95, 'accuracy': 1.0, 'priority': 0}, 
+        'p2_pokemon_state': 
+            {'name': 'lapras', 'hp_pct': 0.37, 'status': 'nostatus', 'effects': ['noeffect'], 'boosts': {'atk': 0, 'def': 0, 'spa': 0, 'spd': 0, 'spe': 0}}, 
+        'p2_move_details': 
+            {'name': 'blizzard', 'type': 'ICE', 'category': 'SPECIAL', 'base_power': 120, 'accuracy': 0.9, 'priority': 0}
+            }
+    '''
     return pd.DataFrame(turns)
 
 
