@@ -123,6 +123,17 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
     return pd.DataFrame(team_pokemons)
 
 
+def clean_battles_df(df: pd.DataFrame) -> pd.DataFrame:
+    return df
+
+
+def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
+    return df
+
+
+def clean_teams_df(df: pd.DataFrame) -> pd.DataFrame:
+    return df
+
 
 def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -135,11 +146,18 @@ def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
         teams_df: pandas df: One row per pokemon per battle
     """
      
+    # Load
     data = load_data()
 
+    # Extract 
     battles = extract_battles_df(data, train)
     turns = extract_turns_df(data)
     teams = extract_teams_df(data)
+
+    # Clean
+    battles = clean_battles_df(battles)
+    turns = clean_turns_df(turns)
+    teams = clean_teams_df(teams)
 
     # Somewhere, where we acutally clean data, we need to drop the flawed record row: 4877 
     # Not sure which one is actually the flawed record
@@ -150,10 +168,27 @@ def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
 
 
 battles, turns, teams = clean_data()
+'''
 print("BATTLES:")
 print(battles.head())
+print(battles.info())
+print(battles.describe())
+print(battles.nunique())
+print(battles.isnull().sum())
+
 print("TURNS:")
 print(turns.head())
 print("TEAMS:")
 print(teams.head())
- 
+ '''
+
+
+print(turns.info())
+print()
+print(turns.describe())
+print()
+print(turns.nunique())
+print()
+print(turns.isnull().sum())
+
+
