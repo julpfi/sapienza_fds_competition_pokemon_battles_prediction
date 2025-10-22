@@ -59,7 +59,7 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
             p1_pokemon_state = t.get("p1_pokemon_state") or {}
             for key, val in p1_pokemon_state.items():
                 if key == "effects": 
-                    turn[f"p1_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
+                    turn[f"p1_pokemon_state_{key}"] = "_".join(val) # Concats the potential effects: Check if needed 
                 elif key == "boosts"  and isinstance(val, dict):
                     for boost_name, boost_stat in val.items(): 
                         turn[f"p1_pokemon_state_boost_{boost_name}"] = boost_stat
@@ -78,7 +78,7 @@ def extract_turns_df(raw_data: list) -> pd.DataFrame:
             p2_pokemon_state = t.get("p2_pokemon_state") or {}
             for key, val in p2_pokemon_state.items():
                 if key == "effects": 
-                    turn[f"p2_pokemon_state_{key}"] = val[0] # TODO: Think about solution 
+                    turn[f"p2_pokemon_state_{key}"] =  "_".join(val) # Concats the potential effects: Check if needed
                 elif key == "boosts" and isinstance(val, dict):
                     for boost_name, boost_stat in val.items(): 
                         turn[f"p2_pokemon_state_boost_{boost_name}"] = boost_stat 
