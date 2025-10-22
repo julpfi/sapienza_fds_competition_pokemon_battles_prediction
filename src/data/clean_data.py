@@ -108,6 +108,8 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
     Return: 
         Pandas Dataframe with the described records
     '''
+    # Note: Checked that every p1 pokemon team has 6 pokemons -> It could be merged easily in battles_df
+    # For now: Keep this structure as it is given and allows for flexibility when calculating teams specific features 
     team_pokemons = []
     for x in raw_data:
         battle_id = x["battle_id"]
