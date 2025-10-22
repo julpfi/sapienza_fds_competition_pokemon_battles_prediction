@@ -6,7 +6,7 @@ import json
 train_data = []
 test_data = []
 types = set()
-# Read the file line by line
+
 
 try:
     with open(config.DATA_TRAIN_PATH, 'r') as f:
@@ -23,6 +23,9 @@ try:
     print(f"Successfully loaded {len(test_data)} battles.") 
 
 
+
+
+    # ------------------ CHECK AND QUERY TYPES -------------------------------
     for l in train_data:
         for t1 in l["p1_team_details"]:
             types.update([t.lower() for t in t1["types"]])
@@ -50,10 +53,21 @@ try:
             if t["p2_move_details"]:
                 types.add(t["p2_move_details"]["type"].lower())
 
-
-    print("TYPES...")
-    print(types)
+    # print("TYPES:\n", types)
     
+
+    # -------------------------------------------------------------------------------
+
+
+    # ------------------ CHECK NUMBER OF POKEMON OF PLAYER 1  -------------------------------
+
+    team_sizes_train = [len(battle["p1_team_details"]) for battle in train_data]
+    team_sizes_test = [len(battle["p1_team_details"]) for battle in test_data]
+    
+    #print(set(team_sizes_train))
+    #print(set(team_sizes_test))
+
+    # ---------------------------------------------------------------------------------
 
     # Let's inspect the first battle to see its structure
     print("\n--- Structure of the first train battle: ---")
@@ -128,6 +142,9 @@ try:
             {'name': 'lapras', 'hp_pct': 0.37, 'status': 'nostatus', 'effects': ['noeffect'], 'boosts': {'atk': 0, 'def': 0, 'spa': 0, 'spd': 0, 'spe': 0}}, 
         'p2_move_details': 
             {'name': 'blizzard', 'type': 'ICE', 'category': 'SPECIAL', 'base_power': 120, 'accuracy': 0.9, 'priority': 0}}
+        
+        
+
         '''
 
 
