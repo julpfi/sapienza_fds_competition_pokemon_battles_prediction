@@ -1,6 +1,6 @@
 from src.data.load_data import load_data
 from src.data.clean_data import clean_data
-from src.data.feature_engineering import feature_engineering
+from src.data.feature_engineering.feature_engineering import feature_engineering
 from src.models.predict import predict
 
 if __name__ == "__main__":
