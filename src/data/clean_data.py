@@ -1,4 +1,4 @@
-from load_data import load_data 
+from data.load_data import load_data 
 from src.utils.config import POKEMON_TYPES
 import pandas as pd
 
