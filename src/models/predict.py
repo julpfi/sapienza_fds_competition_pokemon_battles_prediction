@@ -1,24 +1,22 @@
 import pandas as pd
+import os
+from utils.config import SUBMISSION_DIR
+from datetime import datetime
 
 def predict(model, data:pd.DataFrame): 
-    print("Generating predictions on the test set...")
-    test_predictions = model.predict(X_test)
 
-    # Create the submission DataFrame
+    test_predictions = model.predict(model)
+
     submission_df = pd.DataFrame({
-        'battle_id': test_df['battle_id'],
+        'battle_id': data['battle_id'],
         'player_won': test_predictions
     })
 
-    # Save the DataFrame to a .csv file
+    current_time = datetime.now()
+    time_string = current_time.strftime("%m/%d/%Y, %H:%M:%S")
+    name = time_string + 'submission.csv'
+    path = os.path.join(path,name)
     submission_df.to_csv('submission.csv', index=False)
 
-    print("\n'submission.csv' file created successfully!")
-    display(submission_df.head())
-
-
-
-
-    load_data()
 
 

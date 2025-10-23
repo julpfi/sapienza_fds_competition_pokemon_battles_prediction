@@ -24,7 +24,6 @@ def feature_engineering_version_1(train:bool, battles:pd.DataFrame, turns:pd.Dat
         + (["player_won"] if train else [])
         )
 
-    print("columns: ", columns_battles)
     battles_subset = battles[columns_battles]
 
 
