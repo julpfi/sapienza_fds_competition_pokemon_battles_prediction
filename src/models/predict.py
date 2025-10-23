@@ -1,11 +1,13 @@
 import pandas as pd
 import os
-from utils.config import SUBMISSION_DIR
 from datetime import datetime
 
-def predict(model, data:pd.DataFrame, addition:str=""): 
+def predict(model, data: pd.DataFrame, addition: str = ""): 
 
-    test_predictions = model.predict(model)
+    test_predictions = model.predict(data)
+    
+    # Convert True/False to 1/0
+    test_predictions = test_predictions.astype(int)
 
     submission_df = pd.DataFrame({
         'battle_id': data['battle_id'],
@@ -13,10 +15,9 @@ def predict(model, data:pd.DataFrame, addition:str=""):
     })
 
     current_time = datetime.now()
-    time_string = current_time.strftime("%m/%d/%Y, %H:%M:%S")
-    name = time_string + (("_" + addition + "_") if addition else "") + 'submission.csv'
-    path = os.path.join(path,name)
-    submission_df.to_csv('submission.csv', index=False)
-
-
-
+    time_string = current_time.strftime("%Y-%m-%d_%H-%M-%S")
+    name = time_string + (("_" + addition) if addition else "") + "_submission.csv"
+    
+    path = os.path.join("submissions", name)
+    submission_df.to_csv(path, index=False)
+    print(f"Saved to: {path}")
