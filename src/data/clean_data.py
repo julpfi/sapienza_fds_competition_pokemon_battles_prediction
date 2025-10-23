@@ -143,10 +143,11 @@ def clean_teams_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Load, extracts, and cleans the pokemon data
+    Extracts and cleans the pokemon data
     Param: 
+        raw_data: list: Raw_data that is loaded in load_data
         Train: bool: Indicates if it is handling the test or train data and adjusts logic (mainly player_won column)
     Returns:
         battles_df: pandas df: One row per battle
@@ -154,13 +155,10 @@ def clean_data(train: bool=True) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
         teams_df: pandas df: One row per pokemon per battle
     """
      
-    # Load
-    data = load_data()
-
     # Extract 
-    battles = extract_battles_df(data, train)
-    turns = extract_turns_df(data)
-    teams = extract_teams_df(data)
+    battles = extract_battles_df(raw_data, train)
+    turns = extract_turns_df(raw_data)
+    teams = extract_teams_df(raw_data)
 
     # Clean
     battles = clean_battles_df(battles)

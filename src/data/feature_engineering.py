@@ -1,4 +1,3 @@
-from clean_data import clean_data
 import pandas as pd
 
 
@@ -42,8 +41,7 @@ def feature_engineering_version_1(train:bool, battles:pd.DataFrame, turns:pd.Dat
     return df
 
 
-def feature_engineering(version: int=1, train:bool=True):
-    battles, turns, teams = clean_data(train)
+def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataFrame, version: int=1, train:bool=True):
    
     # Safety handling ensuring that train data contains player_won
     if train and "player_won" not in battles.columns:
@@ -62,9 +60,3 @@ def feature_engineering(version: int=1, train:bool=True):
         return X, y
     else:
         return features
-    
-    
-X = feature_engineering(train=False)
-
-print(X)
-#print(y)
