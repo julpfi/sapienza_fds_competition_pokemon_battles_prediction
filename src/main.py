@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     model = None 
 
-    raw_test_data = load_data(train=True)
+    raw_test_data = load_data(train=False)
     battles_test, turns_test, teams_test = clean_data(raw_data=raw_test_data, train=True)
     X_test = feature_engineering(battles=battles_train, turns=turns_train, teams=teams_train, version=version, train=True)
 
