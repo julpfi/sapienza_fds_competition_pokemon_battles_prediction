@@ -22,3 +22,6 @@ Thumbs.db
 # Kaggle credentials
 kaggle.json
 .kaggle/
+
+# Infnore for Windows: Mark of web files 
+*:Zone.Identifier
