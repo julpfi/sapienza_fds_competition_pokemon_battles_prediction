@@ -3,7 +3,7 @@ import os
 from utils.config import SUBMISSION_DIR
 from datetime import datetime
 
-def predict(model, data:pd.DataFrame): 
+def predict(model, data:pd.DataFrame, addition:str=""): 
 
     test_predictions = model.predict(model)
 
@@ -14,7 +14,7 @@ def predict(model, data:pd.DataFrame):
 
     current_time = datetime.now()
     time_string = current_time.strftime("%m/%d/%Y, %H:%M:%S")
-    name = time_string + 'submission.csv'
+    name = time_string + (("_" + addition + "_") if addition else "") + 'submission.csv'
     path = os.path.join(path,name)
     submission_df.to_csv('submission.csv', index=False)
 
