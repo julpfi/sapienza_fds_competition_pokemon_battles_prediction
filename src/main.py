@@ -34,4 +34,3 @@ if __name__ == "__main__":
 
     #predict.predict(model, X_test,
     #                input("Add text to submission.csv file name\n>>> "))
-                    
