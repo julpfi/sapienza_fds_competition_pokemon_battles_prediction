@@ -147,10 +147,8 @@ try:
 
         '''
 
-
-    
-    
-
+    df_train = pandas.DataFrame(train_data)
+    print(df_train["player_won"].value_counts())
 
 
 except FileNotFoundError:

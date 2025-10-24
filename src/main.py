@@ -32,6 +32,6 @@ if __name__ == "__main__":
         train=False)
 
 
-    predict.predict(model, X_test,
-                    input("Add text to submission.csv file name\n>>> "))
+    #predict.predict(model, X_test,
+    #                input("Add text to submission.csv file name\n>>> "))
                     
