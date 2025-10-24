@@ -2,7 +2,7 @@ import src.data.load_data as load
 import src.data.clean_data as clean
 import src.data.feature_engineering.feature_engineering as feature_engineering
 import src.models.predict  as predict
-import src.models.baseline as baseline
+import src.models.train as train
 import pandas
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         version=version,
         train=True)
 
-    model = baseline.train_baseline_model(X=X_train, y=y_train)
+    model = train.train_baseline(X=X_train, y=y_train)
 
     raw_test_data = load.load_data(train=False)
     battles_test, turns_test, teams_test = clean.clean_data(raw_data=raw_test_data, train=False)
@@ -32,4 +32,6 @@ if __name__ == "__main__":
         train=False)
 
 
-    predict.predict(model, X_test, "TEST")
+    predict.predict(model, X_test,
+                    input("Add text to submission.csv file name\n>>> "))
+                    
