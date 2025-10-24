@@ -1,4 +1,4 @@
-from data.load_data import load_data 
+from src.data.load_data import load_data 
 from src.utils.config import POKEMON_TYPES
 import pandas as pd
 
@@ -172,8 +172,9 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     
     return battles, turns, teams
 
-'''
-battles, turns, teams = clean_data()
+
+raw_data = load_data()
+battles, turns, teams = clean_data(raw_data)
 
 print("BATTLES:")
 print(battles.head())
@@ -196,5 +197,6 @@ print()
 print(turns.nunique())
 print()
 print(turns.isnull().sum())
-'''
 
+def g ():
+    return None
