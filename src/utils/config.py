@@ -11,6 +11,7 @@ SUBMISSION_DIR = "submissions/"
 
 # seed
 SEED = 1019
+RANDOM_STATE = 42
 
 # constants: 
 POKEMON_TYPES = ['normal', 'fire', 'water', 'grass', 'fighting', 'ice', 'notype', 'electric', 'flying', 'psychic', 'ghost', 'poison', 'ground', 'dragon', 'rock']
