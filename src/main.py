@@ -3,7 +3,6 @@ import src.data.clean_data as clean
 import src.data.feature_engineering.feature_engineering as feature_engineering
 import src.models.predict  as predict
 import src.models.train as train
-import pandas
 
 if __name__ == "__main__":
     
@@ -12,19 +11,22 @@ if __name__ == "__main__":
     raw_train_data = load.load_data(train=True)
     battles_train, turns_train, teams_train = clean.clean_data(raw_data=raw_train_data, train=True)
 
-    X_train, y_train = feature_engineering.feature_engineering(
+    features_train = feature_engineering.feature_engineering(
         battles=battles_train,
         turns=turns_train,
         teams=teams_train,
         version=version,
         train=True)
 
+    y_train = features_train["player_won"]
+    X_train = features_train.drop(columns=["player_won"])
+
     model = train.train_baseline(X=X_train, y=y_train)
 
     raw_test_data = load.load_data(train=False)
     battles_test, turns_test, teams_test = clean.clean_data(raw_data=raw_test_data, train=False)
     
-    X_test = feature_engineering.feature_engineering(
+    features_test = feature_engineering.feature_engineering(
         battles=battles_test, 
         turns=turns_test, 
         teams=teams_test, 
@@ -32,5 +34,5 @@ if __name__ == "__main__":
         train=False)
 
 
-    #predict.predict(model, X_test,
+    #predict.predict(model, features_test,
     #                input("Add text to submission.csv file name\n>>> "))
