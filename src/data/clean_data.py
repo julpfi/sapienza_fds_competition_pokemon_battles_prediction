@@ -168,11 +168,11 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     # Somewhere, where we acutally clean data, we need to drop the flawed record row: 4877 
     # Not sure which one is actually the flawed record
     # print(data[4877])
-    print("PLACEHOLDER")
+    print("Look into entry 4877")
     
     return battles, turns, teams
 
-
+'''
 raw_data = load_data()
 battles, turns, teams = clean_data(raw_data)
 
@@ -200,3 +200,5 @@ print(turns.isnull().sum())
 
 def g ():
     return None
+
+'''
