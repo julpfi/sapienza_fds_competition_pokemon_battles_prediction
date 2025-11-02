@@ -13,7 +13,7 @@ if __name__ == "__main__":
         1 : "logistic",
         2: "random_forest"
     }
-    model_type = model_map.get(int(input("Select model to use: \n\t1 - Logistic regression\n\t2 - Random forest").strip()))
+    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n>>> ").strip()))
     with_grid_search = input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
     print("\n")
     
@@ -55,8 +55,8 @@ if __name__ == "__main__":
             train=False)
 
         battle_ids_test = features_test["battle_id"]
-        X_test = features_test.drop(columns=["battle_id"])
-    
+        X_test = features_test.drop(columns=['battle_id', 'player_won'])   
+         
     # 2.3. Predict test data with model and save file (for LR data will be standardized)
         addition = input("Add text to submission.csv file name\n>>> ")
         predict.predict(model, X_test, battle_ids=battle_ids_test, addition=addition)

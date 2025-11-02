@@ -131,12 +131,13 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
     return pd.DataFrame(team_pokemons)
 
 
-def clean_battles_df(df: pd.DataFrame) -> pd.DataFrame:
+def clean_battles_df(df: pd.DataFrame, train:bool) -> pd.DataFrame:
     """Cleans the battles_df. (Mainly P2 Lead data)."""
     # Based on our EDA, this df is mostly clean.
     # Just make sure 'player_won' is an integer if it exists.
-    if 'player_won' in df.columns and df['player_won'].dtype == 'object':
+    if train:
         df['player_won'] = df['player_won'].astype(int)
+        
     return df
 
 
@@ -191,7 +192,7 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     teams = extract_teams_df(raw_data)
 
     # Clean
-    battles = clean_battles_df(battles)
+    battles = clean_battles_df(battles, train)
     turns = clean_turns_df(turns)
     teams = clean_teams_df(teams)
 

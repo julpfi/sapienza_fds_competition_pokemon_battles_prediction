@@ -25,18 +25,22 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                                     for logistic that is packed inside the pipeline)
     '''
 
-    model = models.get_model(model_type=model_type)
-    if grid_search: 
-        if model_type == "logistic":
-            # Create a pipeline adds scaling to the model 
-            # NOTE: Custom standardization and Gridsearch might cause porblem 
-            #       => Use pipeline as sklearn takes care of that
-            
+    # Create a pipeline adds scaling to the model 
+    # NOTE: Custom standardization and Gridsearch might cause porblem 
+    #       => Use pipeline as sklearn takes care of that
+    if model_type == "logistic":
             model = Pipeline([
                 ('scaler', StandardScaler()),
-                ('model', model)
+                ('model', models.get_model(model_type=model_type))
             ])
+    elif model_type == "random_forest":
+        model = models.get_model(model_type=model_type)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
 
+
+    if grid_search: 
+        if model_type == "logistic":
             # Create para_grid that is handeled in pipeline step
             # We must prefix parameters with 'model__' (the name of our step)
             param_grid = {
