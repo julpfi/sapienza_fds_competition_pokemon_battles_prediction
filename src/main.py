@@ -5,12 +5,18 @@ import src.models.predict  as predict
 import src.models.train as train
 
 if __name__ == "__main__":
+    print("\n ---------- Starting ML Pipeline ---------- \n")
+
+    # Config
+    version = int(input("Select the feature engineering version:\n>>> ").strip())
+    model_map = {
+        1 : "logistic",
+        2: "random_forest"
+    }
+    model_type = model_map.get(int(input("Select model to use: \n\t1 - Logistic regression\n\t2 - Random forest").strip()))
+    with_grid_search = input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
+    print("\n")
     
-    version = int(input("Please select the feature engineering version:\n>>> "))
-    with_grid_search = input("With GridSearch (y/n)\n>>> ").lower() == 'y'
-    model_type = "logistic"
-
-
     # ----------------------------------------------------------------------------------------
     # 1.1.  Load and clean train data
     raw_train_data = load.load_data(train=True)
@@ -25,7 +31,8 @@ if __name__ == "__main__":
         train=True)
 
     y_train = features_train["player_won"]
-    X_train = features_train.drop(columns=["player_won"])
+
+    X_train = features_train.drop(columns=["player_won", "battle_id"])
 
     # 1.3. Train model including GridSearch (for LR data will be standardized)  
     model = train.train(X=X_train, y=y_train, model_type=model_type, grid_search=with_grid_search)
@@ -33,20 +40,23 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------
     predict_and_create_csv = input("Predict test data and create csv (y/n)\n>>> ").lower() == 'y'
-    
+
     if predict_and_create_csv: 
     # 2.1. Load and clean test data
         raw_test_data = load.load_data(train=False)
         battles_test, turns_test, teams_test = clean.clean_data(raw_data=raw_test_data, train=False)
     
     # 2.2. Create features for test data
-        X_test = feature_engineering.feature_engineering(
+        features_test = feature_engineering.feature_engineering(
             battles=battles_test, 
             turns=turns_test, 
             teams=teams_test, 
             version=version, 
             train=False)
 
+        battle_ids_test = features_test["battle_id"]
+        X_test = features_test.drop(columns=["battle_id"])
+    
     # 2.3. Predict test data with model and save file (for LR data will be standardized)
         addition = input("Add text to submission.csv file name\n>>> ")
-        predict.predict(model, X_test, addition=addition, model_type=model_type)
+        predict.predict(model, X_test, battle_ids=battle_ids_test, addition=addition)

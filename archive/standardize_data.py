@@ -6,7 +6,7 @@ from typing import List
 
 _GLOBAL_SCALER = StandardScaler()
 
-def standardize_data(data: pd.DataFrame, train: bool = True, features_to_exclude: List[str] = ['battle_id', 'player_won']) -> pd.DataFrame:
+def standardize_data(data: pd.DataFrame, train: bool = True, features_to_exclude: list[str] = ['battle_id', 'player_won']) -> pd.DataFrame:
     """
     Description: 
         Standardizes numerical features using StandardScaler. It fits the scaler ONLY if train=True.
@@ -14,13 +14,13 @@ def standardize_data(data: pd.DataFrame, train: bool = True, features_to_exclude
         data (pd.DataFrame): The DataFrame (train or test) containing features
         train (bool): If True, fits the scaler and returns X_scaled and y
                       If False, only transforms data and returns X_scaled
-        features_to_exclude (List[str]): Columns to ignore during scaling
+        features_to_exclude (list[str]): Columns to ignore during scaling
         
     Returns:
         pd.DataFrame or Tuple[pd.DataFrame, pd.Series]: Scaled features (X) and optionally the target (y).
     """
-    
-    print(f"Start standardization of {"train" if train else "test"} data")
+    m = "train" if train else "test"
+    print(f"Start standardization of {m} data")
     
     # 1. Feature and Target Definition
     
