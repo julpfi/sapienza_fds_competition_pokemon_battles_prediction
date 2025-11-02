@@ -132,14 +132,44 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
 
 
 def clean_battles_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Cleans the battles_df. (Mainly P2 Lead data)."""
+    # Based on our EDA, this df is mostly clean.
+    # Just make sure 'player_won' is an integer if it exists.
+    if 'player_won' in df.columns and df['player_won'].dtype == 'object':
+        df['player_won'] = df['player_won'].astype(int)
     return df
 
 
 def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
+    
+    # Identify all columns related to move details
+    str_move_cols = [col for col in df.columns if col.endswith(('_name', '_type', '_category'))]
+    num_move_cols = [col for col in df.columns if col.endswith(('_base_power', '_accuracy', '_priority'))]
+    
+    # 1. Fill NaNs for missing moves
+    # When a move is missing (NaN), it's usually a switch or KO.
+    
+    # Fill text-based move columns with a 'MISSING' placeholder
+    for col in str_move_cols:
+        # Use .astype('category') to save a lot of memory
+        df[col] = df[col].fillna('MISSING_MOVE').astype('category')
+        
+    # Fill numerical move columns with 0
+    for col in num_move_cols:
+        df[col] = df[col].fillna(0.0)
+
+    # 2. Optimize data types
+    # Boost columns are small integers (-6 to 6), so 'int8' is perfect.
+    boost_cols = [col for col in df.columns if 'pokemon_state_boost_' in col]
+    for col in boost_cols:
+        df[col] = df[col].astype('int8')
+        
     return df
 
 
 def clean_teams_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Cleans the teams_df. (P1 Team data)."""
+    # EDA showed this was already clean. No action needed for now.
     return df
 
 
@@ -165,40 +195,11 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     turns = clean_turns_df(turns)
     teams = clean_teams_df(teams)
 
-    # Somewhere, where we acutally clean data, we need to drop the flawed record row: 4877 
-    # Not sure which one is actually the flawed record
-    # print(data[4877])
-    print("Look into entry 4877")
+# --- Flawed Record Handling ---
+    # Per the GitHub comment, we're noting row 4877 but not dropping it yet.
+    if train:
+        print("Note: Check record at index 4877 (known flawed label).")
+        # We are NOT removing the row in this version.
     
     return battles, turns, teams
 
-'''
-raw_data = load_data()
-battles, turns, teams = clean_data(raw_data)
-
-print("BATTLES:")
-print(battles.head())
-print(battles.info())
-print(battles.describe())
-print(battles.nunique())
-print(battles.isnull().sum())
-
-print("TURNS:")
-print(turns.head())
-print("TEAMS:")
-print(teams.head())
- 
-print(turns.head())
-
-print(turns.info())
-print()
-print(turns.describe())
-print()
-print(turns.nunique())
-print()
-print(turns.isnull().sum())
-
-def g ():
-    return None
-
-'''
