@@ -177,8 +177,8 @@ def _create_dynamic_matchup_features(turns_df: pd.DataFrame, teams_df: pd.DataFr
         lambda row: _get_types_list(row, 'type_'),
         axis=1
     )
-    p1_types_map = p1_types_df.groupby('battle_id', include_groups=False).apply(
-        lambda x: pd.Series(x['p1_types'].values, index=x['name']).to_dict()
+    p1_types_map = p1_types_df.groupby('battle_id').apply(
+        lambda x: pd.Series(x['p1_types'].values, index=x['name']).to_dict(), include_groups=False
     ).to_dict()
 
     temp_df['p1_current_types'] = temp_df.apply(
@@ -319,5 +319,5 @@ def feature_engineering_version_3(
     
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
 
-    print(f"Feature engineering version 3 complete. Feature count: {final_df.shape[1]}")
+    print(f"Feature engineering version 3 complete. Feature count: {final_df.shape[1]}\n")
     return final_df
