@@ -55,8 +55,8 @@ if __name__ == "__main__":
             train=False)
 
         battle_ids_test = features_test["battle_id"]
-        X_test = features_test.drop(columns=["battle_id"])
-    
+        X_test = features_test.drop(columns=['battle_id', 'player_won'])   
+         
     # 2.3. Predict test data with model and save file (for LR data will be standardized)
         addition = input("Add text to submission.csv file name\n>>> ")
         predict.predict(model, X_test, battle_ids=battle_ids_test, addition=addition)
