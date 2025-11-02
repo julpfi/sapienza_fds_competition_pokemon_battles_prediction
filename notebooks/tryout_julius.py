@@ -2,6 +2,7 @@ from src.utils import config
 import pandas
 import json
 
+import jsbeautifier # ONLY INSTALLED FOR ME (JULIUS)
 
 train_data = []
 test_data = []
@@ -70,25 +71,30 @@ try:
     # ---------------------------------------------------------------------------------
 
     # Let's inspect the first battle to see its structure
-    print("\n--- Structure of the first train battle: ---")
+    battle_id = int(input("Get battle with id\n>>> "))
+    turn_until  = int(input("Show turns until\n>>> "))
     if train_data:
-        first_battle = train_data[0]
+        battle_seledted = train_data[battle_id]
         
         # To keep the output clean, we can create a copy and truncate the timeline
-        battle_for_display = first_battle.copy()
-        battle_for_display['battle_timeline'] = battle_for_display.get('battle_timeline', [])[:2] # Show first 2 turns
+        battle_for_display = battle_seledted.copy()
+        battle_for_display['battle_timeline'] = battle_for_display.get('battle_timeline', [])[:turn_until]
         
         # Use json.dumps for pretty-printing the dictionary
         
-        '''print(json.dumps(battle_for_display, indent=4))
-        if len(first_battle.get('battle_timeline', [])) > 3:
+        # print(json.dumps(battle_for_display, indent=4))
+        print(jsbeautifier.beautify(json.dumps(battle_for_display['battle_timeline'], indent=4)) )
+
+        '''
+
+        if len(battle_seledted.get('battle_timeline', [])) > 3:
             print("    ...")
             print("    (battle_timeline has been truncated for display)")
 
         '''
 
 
-        # print(first_battle['battle_timeline'][15])
+        # print(battle_seledted['battle_timeline'][15])
         # One battle: dict of 
         #   'player_won' - boolean
         #   'p1_team_details' - list (team of pokemons) of dict of 
@@ -147,8 +153,8 @@ try:
 
         '''
 
-    df_train = pandas.DataFrame(train_data)
-    print(df_train["player_won"].value_counts())
+    #df_train = pandas.DataFrame(train_data)
+    #print(df_train["player_won"].value_counts())
 
 
 
