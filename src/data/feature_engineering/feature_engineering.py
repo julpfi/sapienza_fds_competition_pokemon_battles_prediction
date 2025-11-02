@@ -14,6 +14,8 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
             features = feature_engineering_version_1(train, battles, turns, teams)
         case 2: 
             features = feature_engineering_version_2(train, battles, turns, teams)
+        case 3: 
+            features = feature_engineering_version_3(train, battles, turns, teams)            
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         
