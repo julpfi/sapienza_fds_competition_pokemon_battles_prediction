@@ -1,14 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
-
-# --- 1. Define Config Class (so the notebook can run without 'src' import) ---
-class Config:
-    POKEMON_TYPES = ['normal', 'fire', 'water', 'grass', 'fighting', 'ice', 'notype', 'electric', 'flying', 'psychic', 'ghost', 'poison', 'ground', 'dragon', 'rock']
-    # Add any other config variables your helpers might need
-    
-config = Config()
-
+from src.utils import config
 
 # HELPER 0: TYPE CALCULATION (Unchanged)
 
