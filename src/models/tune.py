@@ -3,14 +3,14 @@ import numpy as np
 import time
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.base import BaseEstimator
-from typing import Dict, Any
+from typing import Any
 from utils.config import SEED
 
 def perform_grid_search(
     model: BaseEstimator,
     X: pd.DataFrame,
     y: pd.Series,
-    param_grid: Dict[str, List[Any]],
+    param_grid: dict[str, list[Any]],
     scoring: str = 'accuracy',
     n_splits: int = 5,
     random_state: int = SEED

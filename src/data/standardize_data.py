@@ -20,6 +20,8 @@ def standardize_data(data: pd.DataFrame, train: bool = True, features_to_exclude
         pd.DataFrame or Tuple[pd.DataFrame, pd.Series]: Scaled features (X) and optionally the target (y).
     """
     
+    print(f"Start standardization of {"train" if train else "test"} data")
+    
     # 1. Feature and Target Definition
     
     # Robustly select only NUMERICAL features and create a copy.
