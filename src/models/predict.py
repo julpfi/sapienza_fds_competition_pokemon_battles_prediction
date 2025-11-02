@@ -1,9 +1,8 @@
 import pandas as pd
 import os
 from datetime import datetime
-from data.standardize_data import standardize_data
 
-def predict(model, data: pd.DataFrame, addition: str = "", model_type:str="logistic"): 
+def predict(model, data: pd.DataFrame,battle_ids:pd.Series, addition: str = ""): 
     '''
     Description:  
         Predicts the outcome of the test data with the given model. 
@@ -13,13 +12,9 @@ def predict(model, data: pd.DataFrame, addition: str = "", model_type:str="logis
         mode: Model that is used to predict data
         data (pd.DataFrame): test data that was prepared the same way as the train data. 
         addition (str): Any additional naming for the title of the csv that will be saved
-        model_type (str): model_type which is relevant for standardization of data needed for certain models
     '''
     print("Starting prediction of test data")
-    
-    # Standardize data for logistic regression 
-    if model_type == "logistic": 
-        data = standardize_data(data, train=False)
+
 
     # Predict test data 
     test_predictions = model.predict(data)
@@ -29,7 +24,7 @@ def predict(model, data: pd.DataFrame, addition: str = "", model_type:str="logis
 
     # Create df in submission format 
     submission_df = pd.DataFrame({
-        'battle_id': data['battle_id'],
+        'battle_id': battle_ids,
         'player_won': test_predictions
     })
 

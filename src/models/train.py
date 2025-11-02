@@ -1,27 +1,53 @@
 
 from . import models as models
-from tune import perform_grid_search
-from data.standardize_data import standardize_data
+from . import tune 
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+from sklearn.base import BaseEstimator
 
 
-def train(X, y, model_type:str="logistic", grid_search:bool=True, **kwargs):
-    # Standardize data for logistic regression 
-    if model_type == "logistic": 
-        X = standardize_data(X, train=True)
+def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bool=True
+          )-> BaseEstimator:
+    '''
+    Description: 
+        Trains the selected model type given the feature set of the training data and the assocaited outcomes.
+        If selected, executes gridsearch and fits models on best estiamtors.
+        For logistic regression, a pipeline is set up to implement necessary standardization
+    Param: 
+        X: feature data set of training data
+        y: Outcome variable for each record 
+        model_type (str): Declares what model to fit 
+        grid_search (bool): Determines if basemodel is return or if grid search is executed 
+                            which fits the model for the best parameters  
+    Retunrs: 
+        Base estimator: Fitted model (basemodel or best-fit from gird search; 
+                                    for logistic that is packed inside the pipeline)
+    '''
 
-    # Create baseline model
     model = models.get_model(model_type=model_type)
-
-    # Perform grid search or fit baseline model 
     if grid_search: 
-        # Declare param grids used in grid search 
         if model_type == "logistic":
+            # Create a pipeline adds scaling to the model 
+            # NOTE: Custom standardization and Gridsearch might cause porblem 
+            #       => Use pipeline as sklearn takes care of that
+            
+            model = Pipeline([
+                ('scaler', StandardScaler()),
+                ('model', model)
+            ])
+
+            # Create para_grid that is handeled in pipeline step
+            # We must prefix parameters with 'model__' (the name of our step)
             param_grid = {
-                "C": [0.01, 0.1, 1.0, 10.0, 100.0],
-                "penalty": ["l1", "l2"], 
-                "solver": ["liblinear", "saga"]
+                "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+                "model__penalty": ["l1", "l2"], 
+                "model__solver": ["liblinear", "saga"],
+                "model__max_iter": [5000]
             }
+
         elif model_type == "random_forest":
+            # Random forest does not need scaling => no pipeline needed => direct param grid
             param_grid = {
                 "n_estimators": [100, 200],
                 "max_depth": [None, 10, 20],
@@ -31,45 +57,14 @@ def train(X, y, model_type:str="logistic", grid_search:bool=True, **kwargs):
             }
         else:
             raise ValueError(f"Unknown model type: {model_type}")
-    
-        model = perform_grid_search(model, X, y, param_grid)
+
+        # Performs gridsearch and fits model with best parameterization
+        model = tune.perform_grid_search(model, X, y, param_grid)
+
+    # No grid search => fit baseline model 
     else:
         print("Training without hyperparameter tuning\n")
         model.fit(X, y)
 
     print(f"Completed training\n")
-  
     return model
-
-
-
-
-
-# Archived as gridsearch implements a k-fold CV already (not stratified but that is ok as data is balanced) 
-"""
-import numpy as np
-from src.utils.model_evaluation import evaluate_classification
-from sklearn.model_selection import StratifiedKFold
-
-
-def cross_validate_model(X, y, model_type, n_splits=5, random_state=42, **model_kwargs):
-    # Could also use simple KFold but after research StratifiedKFold works the same and is just more robust
-    folds = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-    results = []
-
-    for (train_x, val_x) in folds.split(X, y):
-        X_train, X_test = X.iloc[train_x], X.iloc[val_x]
-        y_train, y_test = y.iloc[train_x], y.iloc[val_x]
-        
-        model = models.get_model(model_type=model_type, **model_kwargs)
-        model.fit(X_train, y_train)
-        pred = model.predict(X_test)
-
-        metrics = evaluate_classification(y_test, pred)
-        results.append(metrics["accuracy"])
-
-    accuracy_all = np.mean(results)
-    print("Average CV accuracy:" , round(accuracy_all, 4))
-    return accuracy_all
-
-"""
