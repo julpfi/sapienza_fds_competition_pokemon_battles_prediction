@@ -12,9 +12,10 @@ if __name__ == "__main__":
     model_map = {
         1 : "logistic",
         2: "random_forest",
-        3 : "xgboost"
+        3 : "xgboost",
+        4 : "voting"
     }
-    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n    3 - XGBoost\n>>> ").strip()))
+    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n    3 - XGBoost\n    4 - Voting (1-2)\n>>> ").strip()))
     with_grid_search = input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
     print("\n")
     

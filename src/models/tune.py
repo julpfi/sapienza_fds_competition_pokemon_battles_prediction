@@ -1,22 +1,12 @@
 import pandas as pd
-from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV, StratifiedKFold
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedKFold
 from sklearn.base import BaseEstimator
 
 from utils.config import SEED
 import time
 
-def perform_grid_search(
-    model: BaseEstimator,
-    X: pd.DataFrame,
-    y: pd.Series,
-    param_grid: dict,
-    n_iter: int = 50,
-    scoring: str = 'accuracy',
-    n_splits: int = 5,
-    random_state: int = SEED,
-    model_type:str="logistic"
-) -> BaseEstimator:
-
+def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, param_grid: dict, model_type:str="logistic",
+    n_iter: int = 50, scoring: str = 'accuracy', n_splits: int = 5, random_state: int = SEED) -> BaseEstimator:
 
     print("Starting Grid Search")
     start_time = time.time()
@@ -65,6 +55,6 @@ def perform_grid_search(
     print(f"Best Hyperparameters found: {grid_search.best_params_}")
     print(f"Best Mean CV Score ({scoring}):", round(grid_search.best_score_, 4))
     
-    # The grid_search.best_estimator_ is the best model retrained on the entire X and y.
-    return grid_search.best_estimator_
-
+    # The grid_search.best_estimator_ is the best model retrained on the entire X and y
+    # The grid_search.best_params_ can be used in our ensemble_model workflow
+    return grid_search.best_estimator_, grid_search.best_params_
