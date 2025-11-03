@@ -33,7 +33,7 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                 ('scaler', StandardScaler()),
                 ('model', models.get_model(model_type=model_type))
             ])
-    elif model_type == "random_forest":
+    elif model_type == "random_forest" or model_type == "xgboost":
         model = models.get_model(model_type=model_type)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -58,6 +58,17 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                 "min_samples_split": [2, 5],
                 "min_samples_leaf": [1, 2],
                 "max_features": ["sqrt", "log2"]
+            }
+        elif model_type == "xgboost": 
+            param_grid = {
+                'n_estimators': [100, 200, 500, 1000],
+                'learning_rate': [0.01, 0.05, 0.1, 0.2],
+                'max_depth': [3, 5, 7, 9],
+                'subsample': [0.7, 0.8, 0.9, 1.0],
+                'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
+                'gamma': [0, 0.1, 0.5, 1],
+                'reg_lambda': [0.1, 1.0, 5.0, 10.0],
+                'reg_alpha': [0, 0.1, 0.5, 1.0]
             }
         else:
             raise ValueError(f"Unknown model type: {model_type}")
