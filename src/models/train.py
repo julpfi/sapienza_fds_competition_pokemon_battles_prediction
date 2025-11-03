@@ -33,7 +33,7 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                 ('scaler', StandardScaler()),
                 ('model', models.get_model(model_type=model_type))
             ])
-    elif model_type == "random_forest" or model_type == "xgboost":
+    elif model_type in  ["random_forest", "xgboost"]:
         model = models.get_model(model_type=model_type)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -60,6 +60,7 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                 "max_features": ["sqrt", "log2"]
             }
         elif model_type == "xgboost": 
+            # XGboost does not need scaling => no pipeline needed => direct param grid
             param_grid = {
                 'n_estimators': [100, 200, 500, 1000],
                 'learning_rate': [0.01, 0.05, 0.1, 0.2],
@@ -74,7 +75,7 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
             raise ValueError(f"Unknown model type: {model_type}")
 
         # Performs gridsearch and fits model with best parameterization
-        model = tune.perform_grid_search(model, X, y, param_grid)
+        model = tune.perform_grid_search(model, X, y, param_grid, model_type=model_type)
 
     # No grid search => fit baseline model 
     else:

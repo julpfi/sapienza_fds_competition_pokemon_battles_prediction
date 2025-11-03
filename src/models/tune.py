@@ -1,19 +1,20 @@
 import pandas as pd
-import numpy as np
-import time
-from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.base import BaseEstimator
-from typing import Any
+
 from utils.config import SEED
+import time
 
 def perform_grid_search(
     model: BaseEstimator,
     X: pd.DataFrame,
     y: pd.Series,
-    param_grid: dict[str, list[Any]],
+    param_grid: dict,
+    n_iter: int = 50,
     scoring: str = 'accuracy',
     n_splits: int = 5,
-    random_state: int = SEED
+    random_state: int = SEED,
+    model_type:str="logistic"
 ) -> BaseEstimator:
 
 
@@ -21,19 +22,35 @@ def perform_grid_search(
     start_time = time.time()
 
     # 1. Define the Cross-Validation strategy
-    # This defines the OUTER loop (K-Fold strategy used by GridSearchCV)
+    # TODO: Maybe startifeid cross validation? 
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
-    # 2. Initialize Grid Search
-    grid_search = GridSearchCV(
-        estimator=model,
-        param_grid=param_grid,
-        scoring=scoring,
-        cv=kf,
-        verbose=1,
-        n_jobs=-1,  # Use all available cores for parallel processing
-        refit=True  # WATCH OUT: Automatically retrains the best model on the WHOLE dataset
-    )
+    # 2. Initialize Grid Search or RandomizedSearchCV for xgboost 
+    if model_type in ["logistic", "random_forest"]:
+        grid_search = GridSearchCV(
+            estimator=model,
+            param_grid=param_grid,
+            scoring=scoring,
+            cv=kf,
+            verbose=1,
+            n_jobs=-1,  # How the process is run on local cores
+            refit=True, 
+
+        )
+    elif model_type == "xgboost":
+        grid_search = RandomizedSearchCV(
+            estimator=model,
+            param_distributions=param_grid,
+            n_iter=n_iter, #Only for RandomizedSearch
+            cv=kf,
+            scoring=scoring,
+            n_jobs=-1,  # How the process is run on local cores
+            random_state=SEED,
+            verbose=1
+        )
+        
+    else:
+         raise ValueError(f"Unknown model type for tuning: {model_type}")
 
     # 3. Execute Search (Fit)
     # The Grid Search performs K-Fold CV internally for every parameter combination.

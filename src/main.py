@@ -14,7 +14,7 @@ if __name__ == "__main__":
         2: "random_forest",
         3 : "xgboost"
     }
-    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n    3 - XGBoost>>> ").strip()))
+    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n    3 - XGBoost\n>>> ").strip()))
     with_grid_search = input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
     print("\n")
     
