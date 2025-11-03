@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV, StratifiedKFold
 from sklearn.base import BaseEstimator
 
 from utils.config import SEED
@@ -22,8 +22,9 @@ def perform_grid_search(
     start_time = time.time()
 
     # 1. Define the Cross-Validation strategy
-    # TODO: Maybe startifeid cross validation? 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    # Stratified ensures balanced splits; Althpgh not needed (balanced data) might help and does not hurt (recommeneded in several sources)
+    kf  = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=SEED)
+    #kf = KFold(n_splits=n_splits, shuffle=True, random_state=SEED)
 
     # 2. Initialize Grid Search or RandomizedSearchCV for xgboost 
     if model_type in ["logistic", "random_forest"]:
