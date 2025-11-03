@@ -1,5 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from utils.config import SEED
 from xgboost import XGBClassifier
 
@@ -18,7 +20,7 @@ def get_xgboost():
     model_params = dict(random_state=SEED)
     return XGBClassifier(**model_params)
 
-def get_model(model_type: str = "logistic"):
+def get_base_model(model_type: str = "logistic"):
     '''
     Description
         Wrapper function that creates a logistic regression or random forest model
@@ -35,3 +37,60 @@ def get_model(model_type: str = "logistic"):
     else:
         raise ValueError(f"Unknown model type: {model_type}")
     
+
+
+def get_model(model_type:str): 
+    '''
+    #TODO: Description 
+    '''
+    if model_type == "logistic":
+        # Create a pipeline adds scaling to the model 
+        # Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that
+        return Pipeline([
+                ('scaler', StandardScaler()),
+                ('model', get_base_model(model_type=model_type))
+            ])
+    elif model_type in  ["random_forest", "xgboost"]:
+        return get_base_model(model_type=model_type)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
+
+
+
+def get_param_grid(model_type:str):
+    '''
+    #TODO: Description 
+    '''
+    if model_type == "logistic":
+        # Create para_grid that is handeled in pipeline step
+        # We must prefix parameters with 'model__' (the name of our step)
+        return {
+            "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+            "model__penalty": ["l1", "l2"], 
+            "model__solver": ["liblinear", "saga"],
+            "model__max_iter": [5000]
+        }
+
+    elif model_type == "random_forest":
+        # Random forest does not need scaling => no pipeline needed => direct param grid
+        return {
+            "n_estimators": [100, 200],
+            "max_depth": [None, 10, 20],
+            "min_samples_split": [2, 5],
+            "min_samples_leaf": [1, 2],
+            "max_features": ["sqrt", "log2"]
+        }
+    elif model_type == "xgboost": 
+        # XGboost does not need scaling => no pipeline needed => direct param grid
+        return {
+            'n_estimators': [100, 200, 500, 1000],
+            'learning_rate': [0.01, 0.05, 0.1, 0.2],
+            'max_depth': [3, 5, 7, 9],
+            'subsample': [0.7, 0.8, 0.9, 1.0],
+            'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
+            'gamma': [0, 0.1, 0.5, 1],
+            'reg_lambda': [0.1, 1.0, 5.0, 10.0],
+            'reg_alpha': [0, 0.1, 0.5, 1.0]
+        }
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
