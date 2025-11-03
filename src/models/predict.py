@@ -2,7 +2,8 @@ import pandas as pd
 import os
 from datetime import datetime
 
-def predict(model, data: pd.DataFrame,battle_ids:pd.Series, addition: str = ""): 
+def predict(model, data: pd.DataFrame,battle_ids:pd.Series, addition: str = ""
+            ) -> None: 
     '''
     Description:  
         Predicts the outcome of the test data with the given model. 

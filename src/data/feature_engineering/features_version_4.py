@@ -64,11 +64,11 @@ def _create_timeline_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     #Creates aggregated KO and HP % features from the timeline
     
     #  KO Count 
-    p1_last_status = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'])['p1_pokemon_state_status'].last()
+    p1_last_status = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'], observed=False)['p1_pokemon_state_status'].last()
     p1_ko_count = p1_last_status[p1_last_status == 'fnt'].groupby('battle_id').count()
     p1_ko_count.name = 'p1_ko_count'
     
-    p2_last_status = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'])['p2_pokemon_state_status'].last()
+    p2_last_status = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'], observed=False)['p2_pokemon_state_status'].last()
     p2_ko_count = p2_last_status[p2_last_status == 'fnt'].groupby('battle_id').count()
     p2_ko_count.name = 'p2_ko_count'
     
@@ -77,11 +77,11 @@ def _create_timeline_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     ko_df['p2_ko_count'] = ko_df['p2_ko_count'].fillna(0).astype(int)
     
     #  HP % calc 
-    p1_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'])['p1_pokemon_state_hp_pct'].last()
+    p1_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'], observed=False)['p1_pokemon_state_hp_pct'].last()
     p1_team_avg_hp = p1_last_hp_per_pokemon.groupby('battle_id').mean()
     p1_team_avg_hp.name = 'p1_team_avg_hp'
     
-    p2_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'])['p2_pokemon_state_hp_pct'].last()
+    p2_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'], observed=False)['p2_pokemon_state_hp_pct'].last()
     p2_team_avg_hp = p2_last_hp_per_pokemon.groupby('battle_id').mean()
     p2_team_avg_hp.name = 'p2_team_avg_hp'
     
