@@ -21,7 +21,7 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
         grid_search = GridSearchCV(
             estimator=model,
             param_grid=param_grid,
-            scoring=scoring,
+            #scoring=scoring,
             cv=kf,
             verbose=1,
             n_jobs=-1,  # How the process is run on local cores
@@ -34,7 +34,7 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
             param_distributions=param_grid,
             n_iter=n_iter, #Only for RandomizedSearch
             cv=kf,
-            scoring=scoring,
+            #scoring=scoring,
             n_jobs=-1,  # How the process is run on local cores
             random_state=SEED,
             verbose=1

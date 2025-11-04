@@ -24,7 +24,7 @@ def get_xgboost():
     model_params = dict(random_state=SEED, objective='binary:logistic')
     return XGBClassifier(**model_params)
 
-# --------------- BASE MODEL WRAPPER ---------------
+# --------------- BASE MODEL  ---------------
 
 def get_base_model(model_type: str = "logistic"):
     '''
