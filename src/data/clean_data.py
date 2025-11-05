@@ -132,7 +132,10 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
 
 
 def clean_battles_df(df: pd.DataFrame, train:bool) -> pd.DataFrame:
-    """Cleans the battles_df. (Mainly P2 Lead data)."""
+    # Drop record as stated in Classroom 
+    df = df[df['battle_id'] != 4877]
+
+    # Cleans the battles_df. (Mainly p2 Lead data)
     # Based on our EDA, this df is mostly clean.
     # Just make sure 'player_won' is an integer if it exists.
     if train:
@@ -142,7 +145,9 @@ def clean_battles_df(df: pd.DataFrame, train:bool) -> pd.DataFrame:
 
 
 def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
-    
+    # Drop record as stated in Classroom 
+    df = df[df['battle_id'] != 4877]
+
     # Identify all columns related to move details
     str_move_cols = [col for col in df.columns if col.endswith(('_name', '_type', '_category'))]
     num_move_cols = [col for col in df.columns if col.endswith(('_base_power', '_accuracy', '_priority'))]
@@ -169,8 +174,11 @@ def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_teams_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Cleans the teams_df. (P1 Team data)."""
+    #Cleans the teams_df. (p1 Team data)
     # EDA showed this was already clean. No action needed for now.
+
+    # Drop record as stated in Classroom 
+    df = df[df['battle_id'] != 4877]
     return df
 
 
@@ -187,11 +195,13 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     """
      
     # Extract 
+    print("Extracting battles, turns, and teams dataframes...")
     battles = extract_battles_df(raw_data, train)
     turns = extract_turns_df(raw_data)
     teams = extract_teams_df(raw_data)
 
     # Clean
+    print("Cleaning battles, turns, and teams dataframes...\n")
     battles = clean_battles_df(battles, train)
     turns = clean_turns_df(turns)
     teams = clean_teams_df(teams)
