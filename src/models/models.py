@@ -1,5 +1,6 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from xgboost import XGBClassifier
 
 from sklearn.pipeline import Pipeline
@@ -24,6 +25,11 @@ def get_xgboost():
     model_params = dict(random_state=SEED, objective='binary:logistic')
     return XGBClassifier(**model_params)
 
+def get_knn():
+    # creates param dict and sets default values 
+    model_params = dict() # No random state for KNN
+    return KNeighborsClassifier(**model_params)
+
 # --------------- BASE MODEL  ---------------
 
 def get_base_model(model_type: str = "logistic"):
@@ -40,6 +46,8 @@ def get_base_model(model_type: str = "logistic"):
         return get_random_forest()
     elif model_type == "xgboost": 
         return get_xgboost()
+    elif model_type == "knn": 
+        return get_knn()
     else:
         raise ValueError(f"Unknown model type: {model_type}")
     
@@ -51,7 +59,7 @@ def get_model(model_type:str):
     '''
     #TODO: Description 
     '''
-    if model_type == "logistic":
+    if model_type in ["logistic", "knn"]:
         # Create a pipeline adds scaling to the model 
         # Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that
         pipeline = Pipeline([
@@ -74,10 +82,11 @@ def get_model(model_type:str):
 def get_param_grid(model_type:str):
     '''
     #TODO: Description 
-    '''
-    if model_type == "logistic":
         # Create para_grid that is handeled in pipeline step
         # We must prefix parameters with 'model__' (the name of our step)
+    '''
+    if model_type == "logistic":
+        # Pipeline needed for scaling => must use 'model__' prefix
         return {
             "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
             "model__penalty": ["l1", "l2"], 
@@ -86,7 +95,7 @@ def get_param_grid(model_type:str):
         }
 
     elif model_type == "random_forest":
-        # Random forest does not need scaling => no pipeline needed => direct param grid
+        # In pipeline for consistency
         return {
             "model__n_estimators": [100, 200],
             "model__max_depth": [None, 10, 20, 40],
@@ -95,7 +104,7 @@ def get_param_grid(model_type:str):
             "model__max_features": ["sqrt", "log2"]
         }
     elif model_type == "xgboost": 
-        # XGboost does not need scaling => no pipeline needed => direct param grid
+        # In pipeline for consistency
         return {
             'model__n_estimators': [100, 200, 500, 1000],
             'model__learning_rate': [0.01, 0.05, 0.1, 0.2],
@@ -105,6 +114,13 @@ def get_param_grid(model_type:str):
             'model__gamma': [0, 0.1, 0.5, 1],
             'model__reg_lambda': [0.1, 1.0, 5.0, 10.0],
             'model__reg_alpha': [0, 0.1, 0.5, 1.0]
+        }
+    elif model_type == "knn": 
+        # Pipeline needed for scaling => must use 'model__' prefix
+        return {
+            'model__n_neighbors': [3, 5, 7, 9, 11, 15, 21],
+            'model__weights': ['uniform', 'distance'],
+            'model__metric': ['euclidean', 'manhattan']
         }
     else:
         raise ValueError(f"Unknown model type: {model_type}")

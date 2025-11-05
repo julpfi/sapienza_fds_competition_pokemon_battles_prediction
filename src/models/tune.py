@@ -16,8 +16,8 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
     kf  = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=SEED)
     #kf = KFold(n_splits=n_splits, shuffle=True, random_state=SEED)
 
-    # 2. Initialize Grid Search or RandomizedSearchCV for xgboost 
-    if model_type in ["logistic", "random_forest"]:
+    # 2. Initialize Grid Search (for logistic, random forest, and knn) or RandomizedSearchCV for xgboost 
+    if model_type in ["logistic", "random_forest", "knn"]:
         grid_search = GridSearchCV(
             estimator=model,
             param_grid=param_grid,

@@ -72,7 +72,7 @@ def train_voting(X: pd.DataFrame, y: pd.Series, grid_search: bool = True) -> Cus
     #TODO Description 
     ''' 
     # Get Weaker Base Models 
-    model_names = ['logistic', 'random_forest', 'xgboost']
+    model_names = ['logistic', 'random_forest', 'xgboost', 'knn']
     estimators = get_estimators(X, y, model_names=model_names, grid_search=grid_search)
     
     # Get ensemble with custom voting classifier
