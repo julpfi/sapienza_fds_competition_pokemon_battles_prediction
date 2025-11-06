@@ -176,10 +176,8 @@ def _create_dynamic_matchup_features(turns_df: pd.DataFrame, teams_df: pd.DataFr
     
     agg_dict = {
         'p1_stab_flag': 'sum',
-        'p2_eff_score': [
-            lambda x: (x > 1).sum(), 
-            lambda x: (x < 1).sum()
-        ]
+        'p2_eff_score': [lambda x: (x > 1).sum(), lambda x: (x < 1).sum()]
+    
     }
     dynamic_matchup_df = temp_df.groupby('battle_id').agg(agg_dict)
     
@@ -283,5 +281,5 @@ def feature_engineering_version_6(
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
     final_df = final_df.infer_objects(copy=False) # To improve memory usage
 
-    print(f"Feature engineering version 4 completed. Feature count: {final_df.shape[1]}\n\n")
+    print(f"Feature engineering version 6 completed. Feature count: {final_df.shape[1]}\n\n")
     return final_df
