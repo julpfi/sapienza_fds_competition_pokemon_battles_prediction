@@ -16,8 +16,16 @@ if __name__ == "__main__":
         4: "knn",
         5 : "voting"
     }
-    model_type = model_map.get(int(input("Select model to use: \n    1 - Logistic regression\n    2 - Random forest\n    3 - XGBoost\n    4 - k Nearest Neighbour\n    5 - Voting (1-4)\n>>> ").strip()))
-    with_grid_search = input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
+    model_type = model_map.get(int(input("Select model to use: " \
+    "\n    1 - Logistic regression\n    " \
+    "2 - Random forest\n    " \
+    "3 - XGBoost\n    " \
+    "4 - k Nearest Neighbour\n    " \
+    "5 - Voting (1-4)\n>>> ").strip()))
+
+
+    with_grid_search = True #input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
+    print("Selecting model:", model_type, "\nUsing GridSeach (RandomSearch for XGBoost)")
     print("\n")
     
     # ----------------------------------------------------------------------------------------
