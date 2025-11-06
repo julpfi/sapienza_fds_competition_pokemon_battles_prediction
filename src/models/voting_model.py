@@ -31,7 +31,6 @@ def train_voting(X: pd.DataFrame, y: pd.Series, model_names: list,) -> BaseEstim
 
         scores = cross_val_score(best_model, X, y, cv=inner_cv, scoring='accuracy', n_jobs=1)
         base_scores[name] = float(scores.mean())
-        print(f"{name} weight:" , round(base_scores[name], 4))
     
     #  Create soft-voting classifier
     estimators = [(name, base_models[name]) for name in model_names]
