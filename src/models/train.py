@@ -27,9 +27,11 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
 
     if model_type == "custom_voting": 
         model_names = get_user_model_selection_custom_voting()
+        print("Selected models for Custom Voting:", model_names)
         return custom_voting_model.train_voting(X=X, y=y, model_names=model_names,  grid_search=grid_search)
     elif model_type == "voting": 
         model_names = get_user_model_selection_voting()
+        print("Selected models for Voting:", model_names)
         return voting_model.train_voting(X=X, y=y, model_names=model_names)
 
     model = models.get_model(model_type=model_type)

@@ -25,12 +25,13 @@ MODEL_MAP_CUSTOM_VOTING = {
         4 : "hgb"
     }
 
-def _print_selection(mapping:dict):
+def _print_selection(mapping:dict, addition:str="")-> str:
     s = ""
-    s = s + "Select model to use:"
+    s = s + "Select model to use:\n"
     for key in mapping:
-        s = s + "    " + key + " - " + mapping[key] + "\n"
+        s = s + "    " + str(key) + " - " + mapping[key] + "\n"
     
+    s = s + addition
     s = s + ">>> "
     return s 
 
@@ -40,8 +41,8 @@ def get_user_model_selection_main():
     return model_type
 
 
-def get_user_model_selection_voting():
-    answer = input(_print_selection(MODEL_MAP_VOTING)).strip()
+def get_user_model_selection_custom_voting():
+    answer = input(_print_selection(MODEL_MAP_VOTING, addition="Selecting number seperated by a comma\nFor all: press enter\n")).strip()
     if answer == '':
         return [k for k in MODEL_MAP_VOTING.values()]
     else: 
@@ -50,12 +51,14 @@ def get_user_model_selection_voting():
         return model_types
 
 
-def get_user_model_selection_custom_voting():
-    answer = input(_print_selection(MODEL_MAP_CUSTOM_VOTING)).strip()
+def get_user_model_selection_voting():
+    map_without_xgboost = {k:v for k,v in MODEL_MAP_CUSTOM_VOTING.items() if v != 'xgboost'}
+    
+    answer = input(_print_selection(map_without_xgboost, addition="Selecting number seperated by a comma\nFor all: press enter\n")).strip()
     if answer == '':
-        return [k for k in MODEL_MAP_CUSTOM_VOTING.values()]
+        return [k for k in map_without_xgboost.values()]
     else: 
         selections = [int(x) for x in answer.split(',')]
-        model_types = [MODEL_MAP_CUSTOM_VOTING.get(x) for x in selections]
+        model_types = [map_without_xgboost.get(x) for x in selections]
         return model_types
 
