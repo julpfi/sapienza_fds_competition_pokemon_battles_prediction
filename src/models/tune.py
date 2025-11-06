@@ -28,7 +28,7 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
             refit=True, 
 
         )
-    elif model_type == "xgboost":
+    elif model_type in ["xgboost", "hgb"]:
         grid_search = RandomizedSearchCV(
             estimator=model,
             param_distributions=param_grid,

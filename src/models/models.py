@@ -1,5 +1,5 @@
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from xgboost import XGBClassifier
 
@@ -30,6 +30,11 @@ def get_knn():
     model_params = dict() # No random state for KNN
     return KNeighborsClassifier(**model_params)
 
+def get_hgb(): # sklearn LightGBM-like
+    # creates param dict and sets default values 
+    model_params = dict(random_state=SEED, max_iter=1000)
+    return HistGradientBoostingClassifier(**model_params)
+
 # --------------- BASE MODEL  ---------------
 
 def get_base_model(model_type: str = "logistic"):
@@ -48,6 +53,8 @@ def get_base_model(model_type: str = "logistic"):
         return get_xgboost()
     elif model_type == "knn": 
         return get_knn()
+    elif model_type == "hgb":
+        return get_hgb()
     else:
         raise ValueError(f"Unknown model type: {model_type}")
     
@@ -67,7 +74,7 @@ def get_model(model_type:str):
                 ('model', get_base_model(model_type=model_type))
             ])
         
-    elif model_type in ["random_forest", "xgboost"]:
+    elif model_type in ["random_forest", "xgboost", "hgb"]:
         # Wrapping in simple pipeline for consistency
         pipeline = Pipeline([
             ('model', get_base_model(model_type=model_type))
@@ -149,6 +156,14 @@ def get_param_grid(model_type:str):
             'model__n_neighbors': [3, 5, 7, 9, 11, 15, 21],
             'model__weights': ['uniform', 'distance'],
             'model__metric': ['euclidean', 'manhattan']
+        }
+    elif model_type == "hgb":
+        # Pipeline needed for scaling => must use 'model__' prefix
+        return {
+            'model__learning_rate': [0.01, 0.05, 0.1, 0.2, 0.3],
+            'model__max_leaf_nodes': [15, 20, 31, 40, 50, 60],
+            'model__min_samples_leaf': [10, 20, 40],
+            'model__l2_regularization': [0, 0.1, 1.0, 5.0, 10.0]
         }
     else:
         raise ValueError(f"Unknown model type: {model_type}")
