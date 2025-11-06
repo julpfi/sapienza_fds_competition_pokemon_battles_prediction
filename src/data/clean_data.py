@@ -133,7 +133,7 @@ def extract_teams_df(raw_data: list) -> pd.DataFrame:
 
 def clean_battles_df(df: pd.DataFrame, train:bool) -> pd.DataFrame:
     # Drop record as stated in Classroom 
-    df = df[df['battle_id'] != 4877]
+    df = df[df['battle_id'] != 4877].copy()
 
     # Cleans the battles_df. (Mainly p2 Lead data)
     # Based on our EDA, this df is mostly clean.
@@ -146,14 +146,14 @@ def clean_battles_df(df: pd.DataFrame, train:bool) -> pd.DataFrame:
 
 def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
     # Drop record as stated in Classroom 
-    df = df[df['battle_id'] != 4877]
+    df = df[df['battle_id'] != 4877].copy()
 
     # Identify all columns related to move details
     str_move_cols = [col for col in df.columns if col.endswith(('_name', '_type', '_category'))]
     num_move_cols = [col for col in df.columns if col.endswith(('_base_power', '_accuracy', '_priority'))]
     
     # 1. Fill NaNs for missing moves
-    # When a move is missing (NaN), it's usually a switch or KO.
+    # When a move is missing (NaN), it's usually a switch or ko 
     
     # Fill text-based move columns with a 'MISSING' placeholder
     for col in str_move_cols:
@@ -165,7 +165,6 @@ def clean_turns_df(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].fillna(0.0)
 
     # 2. Optimize data types
-    # Boost columns are small integers (-6 to 6), so 'int8' is perfect.
     boost_cols = [col for col in df.columns if 'pokemon_state_boost_' in col]
     for col in boost_cols:
         df[col] = df[col].astype('int8')
@@ -178,7 +177,7 @@ def clean_teams_df(df: pd.DataFrame) -> pd.DataFrame:
     # EDA showed this was already clean. No action needed for now.
 
     # Drop record as stated in Classroom 
-    df = df[df['battle_id'] != 4877]
+    df = df[df['battle_id'] != 4877].copy()
     return df
 
 
@@ -205,12 +204,6 @@ def clean_data(raw_data: list, train: bool=True) -> tuple[pd.DataFrame, pd.DataF
     battles = clean_battles_df(battles, train)
     turns = clean_turns_df(turns)
     teams = clean_teams_df(teams)
-
-# --- Flawed Record Handling ---
-    # Per the GitHub comment, we're noting row 4877 but not dropping it yet.
-    if train:
-        print("Note: Check record at index 4877 (known flawed label).")
-        # We are NOT removing the row in this version.
     
     return battles, turns, teams
 
