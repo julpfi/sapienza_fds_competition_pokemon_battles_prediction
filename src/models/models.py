@@ -87,12 +87,40 @@ def get_param_grid(model_type:str):
     '''
     if model_type == "logistic":
         # Pipeline needed for scaling => must use 'model__' prefix
-        return {
-            "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
-            "model__penalty": ["l1", "l2"], 
-            "model__solver": ["liblinear", "saga"],
-            "model__max_iter": [5000]
-        }
+        return  [
+            # 1. lbfgs (L2 only)
+            {
+                "model__solver": ["lbfgs"],
+                "model__penalty": ["l2"],
+                "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+                "model__max_iter": [1000]
+            },
+            
+            # 2. liblinear (L1 and L2))
+            {
+                "model__solver": ["liblinear"],
+                "model__penalty": ["l1", "l2"],
+                "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+                "model__max_iter": [1000]
+            },
+            
+            # 3. Saga (L1 and L2)
+            {
+                "model__solver": ["saga"],
+                "model__penalty": ["l1", "l2"],
+                "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+                "model__max_iter": [5000]
+            },
+            
+            # 4. Saga (both L1 and L2 with elasticnet)
+            {
+                "model__solver": ["saga"],
+                "model__penalty": ["elasticnet"],
+                "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
+                "model__l1_ratio": [0.25, 0.5, 0.75],
+                "model__max_iter": [5000]
+            }
+        ]
 
     elif model_type == "random_forest":
         # In pipeline for consistency
