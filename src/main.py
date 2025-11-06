@@ -3,31 +3,17 @@ import src.data.clean_data as clean
 import src.data.feature_engineering.feature_engineering as feature_engineering
 import src.models.predict  as predict
 import src.models.train as train
+from src.utils.user_model_selection import get_user_model_selection_main
 
 if __name__ == "__main__":
     print("\n ---------- Starting ML Pipeline ---------- \n")
 
-    # Config
+    # 0. Config
     version = int(input("Select the feature engineering version:\n>>> ").strip())
-    model_map = {
-        1 : "logistic",
-        2: "random_forest",
-        3 : "xgboost",
-        4: "knn",
-        5 : "hgb",
-        6 : "custom_voting"
-    }
-    model_type = model_map.get(int(input("Select model to use: " \
-    "\n    1 - Logistic regression\n    " \
-    "2 - Random forest\n    " \
-    "3 - XGBoost\n    " \
-    "4 - k Nearest Neighbour\n    " \
-    "5 - Histogram-based Gradient Boosting\n    " \
-    "6 - Custom Voting (1-4)\n>>> ").strip()))
-
+    model_type = get_user_model_selection_main()
 
     with_grid_search = True #input("With GridSearch (y/n)\n>>> ").strip().lower() == 'y'
-    print("Selecting model:", model_type, "\nUsing GridSeach (RandomSearch for XGBoost and HGB)")
+    print("Selecting model:", model_type, "\nUsing GridSeach (RandomSearch for XGB and HGB)")
     print("\n")
     
     # ----------------------------------------------------------------------------------------

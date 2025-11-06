@@ -3,7 +3,9 @@ from . import models as models
 from . import tune 
 import pandas as pd
 from sklearn.base import BaseEstimator
+from . import custom_voting_model
 from . import voting_model
+from utils.user_model_selection import get_user_model_selection_voting, get_user_model_selection_custom_voting
 
 
 def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bool=True)-> BaseEstimator:
@@ -23,8 +25,12 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
                                     for logistic that is packed inside the pipeline)
     '''
 
-    if model_type == "voting": 
-        return voting_model.train_voting(X=X, y=y, grid_search=grid_search)
+    if model_type == "custom_voting": 
+        model_names = get_user_model_selection_custom_voting()
+        return custom_voting_model.train_voting(X=X, y=y, model_names=model_names,  grid_search=grid_search)
+    elif model_type == "voting": 
+        model_names = get_user_model_selection_voting()
+        return voting_model.train_voting(X=X, y=y, model_names=model_names)
 
     model = models.get_model(model_type=model_type)
 
