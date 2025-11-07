@@ -41,5 +41,6 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         
- 
+    print("\nFinal features:")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None): print(features.columns.tolist(), "\n\n")
     return features

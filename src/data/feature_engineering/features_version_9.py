@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from src.utils.config import POKEMON_TYPES 
 
 # 0 Type Calc
@@ -191,8 +192,88 @@ def _create_dynamic_matchup_features(turns_df: pd.DataFrame, teams_df: pd.DataFr
     return dynamic_matchup_df
 
 
-# Main feature engineering function - version 7
-def feature_engineering_version_7(
+
+def _get_first_move_advantage(battles_df: pd.DataFrame, teams_df: pd.DataFrame) -> pd.DataFrame:
+    
+    speed_df = battles_df[['battle_id', 'p2_lead_base_spe']].copy()
+    p1_lead_spe_series = teams_df[teams_df['pokemon_nr'] == 0].set_index('battle_id')['base_spe']
+    
+    speed_df['p1_lead_base_spe'] = speed_df['battle_id'].map(p1_lead_spe_series)
+    speed_df['p1_lead_base_spe'] = speed_df['p1_lead_base_spe'].fillna(0)
+    speed_df['p2_lead_base_spe'] = speed_df['p2_lead_base_spe'].fillna(0)
+
+    conditions = [
+        speed_df['p1_lead_base_spe'] > speed_df['p2_lead_base_spe'],
+        speed_df['p2_lead_base_spe'] > speed_df['p1_lead_base_spe']
+        ]
+
+    speed_df['first_move_advantage'] = np.select(conditions, [1, -1], default=0)
+    #speed_df['lead_spe_diff'] = speed_df['p1_lead_base_spe'] - speed_df['p2_lead_base_spe']
+    final_features_df = speed_df.drop(columns=['p1_lead_base_spe', 'p2_lead_base_spe'])
+    return final_features_df.set_index('battle_id')
+
+
+
+# 4 Dynamic Speed Features
+def _build_speed_lookup_map(teams_df: pd.DataFrame, battles_df: pd.DataFrame) -> pd.Series:
+    p1_stats = teams_df[['name', 'base_spe']].drop_duplicates(subset=['name'])
+    
+    p2_stats = battles_df[['p2_lead_name', 'p2_lead_base_spe']].rename(
+        columns={'p2_lead_name': 'name', 'p2_lead_base_spe': 'base_spe'}
+    )
+    
+    lookup_speed_all = pd.concat([p1_stats, p2_stats]).drop_duplicates(subset=['name'])
+    
+    map_name2speed = lookup_speed_all.set_index('name')['base_spe']
+    return map_name2speed
+
+
+def _create_dynamic_speed_features(battles_df, teams_df, turns_df: pd.DataFrame) -> pd.DataFrame:
+    # Speed boosts are added via a multiplier 
+    # (https://www.pokebeach.com/forums/threads/how-to-calculate-speed.126779/#:~:text=Now%20for%20the%20point%20of,%2D6%20Stage%20=%20*0.25)
+    
+    map_name2speed = _build_speed_lookup_map(teams_df, battles_df)
+    speed_stage_multipliers = {
+        -6: 0.25, -5: 0.28, -4: 0.33, -3: 0.4, -2: 0.5, -1: 0.66, 0: 1.0,
+         1: 1.5,  2: 2.0,   3: 2.5,  4: 3.0,  5: 3.5,  6: 4.0
+    }
+
+    active_turns_df = turns_df[((turns_df['p1_move_details_name'] != 'MISSING_MOVE') | (turns_df['p2_move_details_name'] != 'MISSING_MOVE'))].copy()
+    
+    active_turns_df['p1_active_spe'] = active_turns_df['p1_pokemon_state_name'].map(map_name2speed).fillna(0)
+    active_turns_df['p2_active_spe'] = active_turns_df['p2_pokemon_state_name'].map(map_name2speed).fillna(0)
+    
+    active_turns_df['p1_priority'] = active_turns_df['p1_move_details_priority'].fillna(0)
+    active_turns_df['p2_priority'] = active_turns_df['p2_move_details_priority'].fillna(0)
+    
+    p1_spe_boost = active_turns_df['p1_pokemon_state_boost_spe'].fillna(0)
+    p2_spe_boost = active_turns_df['p2_pokemon_state_boost_spe'].fillna(0)
+    
+    p1_spe_multiplier = p1_spe_boost.map(speed_stage_multipliers).fillna(1.0)
+    p2_spe_multiplier = p2_spe_boost.map(speed_stage_multipliers).fillna(1.0)
+
+    active_turns_df['p1_final_spe'] = active_turns_df['p1_active_spe'] * p1_spe_multiplier
+    active_turns_df['p2_final_spe'] = active_turns_df['p2_active_spe'] * p2_spe_multiplier
+
+    conditions = [
+        active_turns_df['p1_priority'] > active_turns_df['p2_priority'],
+        active_turns_df['p2_priority'] > active_turns_df['p1_priority'],
+        active_turns_df['p1_final_spe'] > active_turns_df['p2_final_spe'],
+        active_turns_df['p2_final_spe'] > active_turns_df['p1_final_spe']
+    ]
+    
+
+    active_turns_df['p1_moves_first_flag'] = np.select(conditions, [1, 0, 1, 0], default=0.5)
+    
+    battle_agg = active_turns_df.groupby('battle_id')['p1_moves_first_flag'].agg(['sum', 'count'])
+    battle_agg['dynamic_first_move_ratio'] = battle_agg['sum'] / battle_agg['count']
+    
+    final_df = battle_agg[['dynamic_first_move_ratio']].fillna(0.5)
+    return final_df
+
+
+# Main feature engineering function - version 9
+def feature_engineering_version_9(
     train: bool,
     battles_df: pd.DataFrame, 
     turns_df: pd.DataFrame, 
@@ -252,7 +333,14 @@ def feature_engineering_version_7(
     final_df['speed_x_type_adv'] = final_df['lead_spe_advantage'] * final_df['type_matchup_diff']
 
 
-    # 7. Final Cleanup
+    # 7 Advanced speed features (First move advantage and first move ratio)
+    print("Creating advanced speed features...")
+    first_move_advantage_df = _get_first_move_advantage(battles_df, teams_df)
+    dynamic_speed_features_df = _create_dynamic_speed_features(battles_df, teams_df, turns_df)
+    final_df = final_df.merge(first_move_advantage_df, on='battle_id', how='left')
+    final_df = final_df.merge(dynamic_speed_features_df, on='battle_id', how='left')  
+
+    # 8. Final Cleanup
     redundant_component_features = [
         # Type components
         'p1_type_matchup_score', 'p2_type_matchup_score',
@@ -275,5 +363,5 @@ def feature_engineering_version_7(
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
     final_df = final_df.infer_objects(copy=False)
    
-    print(f"Feature engineering version 7 completed. Feature count: {final_df.shape[1]}")
+    print(f"Feature engineering version 9 completed. Feature count: {final_df.shape[1]}")
     return final_df
