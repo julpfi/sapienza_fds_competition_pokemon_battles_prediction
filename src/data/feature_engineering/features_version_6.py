@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from src.utils.config import POKEMON_TYPES 
-from .feature_selection import select_features
 
 # 0. Type Calc
 
@@ -257,17 +256,6 @@ def feature_engineering_version_6(
     print("Creating interaction feature (Speed x Type) ...")
     final_df['speed_x_type_adv'] = final_df['lead_spe_advantage'] * final_df['type_matchup_diff']
 
-    # 7. Feature Selection
-    print(f"Before filter selection: {final_df.shape[1]} columns")
-
-    exclude_cols = ['battle_id', 'player_won'] if train else ['battle_id']
-    final_df = select_features(
-        final_df, 
-        variance_threshold=0.01, 
-        correlation_threshold=0.95, 
-        exclude_cols=exclude_cols
-    )
-    
     return final_df
 
 

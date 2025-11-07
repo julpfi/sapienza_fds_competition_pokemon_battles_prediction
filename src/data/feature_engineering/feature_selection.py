@@ -60,10 +60,11 @@ def select_features(df: pd.DataFrame, variance_threshold: float = 0.01,
     df = remove_low_variance_features(df, threshold=variance_threshold, exclude_cols=exclude_cols)
     df = remove_highly_correlated_features(df, threshold=correlation_threshold, exclude_cols=exclude_cols)
 
-    # Infer datatypes before returning (ensures float/int consistency)
-    df = df.infer_objects(copy=False)
-
+    
     number_columns_after = df.shape[1] - len([c for c in exclude_cols if c in df.columns])
     print(f"Final features: {number_columns_after}\n")
     
+    # Infer datatypes before returning (ensures float/int consistency)
+    df = df.fillna(0)
+    df = df.infer_objects(copy=False)
     return df

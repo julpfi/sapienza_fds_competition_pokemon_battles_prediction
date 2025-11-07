@@ -1,4 +1,6 @@
 import pandas as pd
+from .feature_selection import select_features
+
 from .features_version_1 import feature_engineering_version_1
 from .features_version_2 import feature_engineering_version_2
 from .features_version_3 import feature_engineering_version_3
@@ -27,10 +29,12 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
         case 5: 
             features = feature_engineering_version_5(train, battles, turns, teams)       
         case 6: 
-            features = feature_engineering_version_6(train, battles, turns, teams)
+            features = feature_engineering_version_6(train, battles, turns, teams)    
+            features = select_features(
+                features, variance_threshold=0.01, correlation_threshold=0.95, 
+                exclude_cols=['battle_id', 'player_won'] if train else ['battle_id'])    
         case 7: 
-            features = feature_engineering_version_7(train, battles, turns, teams)                   
-                     
+            features = feature_engineering_version_7(train, battles, turns, teams)
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         
