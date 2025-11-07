@@ -8,6 +8,7 @@ from .features_version_4 import feature_engineering_version_4
 from .features_version_5 import feature_engineering_version_5
 from .features_version_6 import feature_engineering_version_6
 from .features_version_7 import feature_engineering_version_7
+from .features_version_9 import feature_engineering_version_9
 
 # try if works: from src.data.feature_engineering.features_version_1 import feature_engineering_version_1
 
@@ -35,6 +36,8 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
                 exclude_cols=['battle_id', 'player_won'] if train else ['battle_id'])    
         case 7: 
             features = feature_engineering_version_7(train, battles, turns, teams)
+        case 9: 
+            features = feature_engineering_version_9(train, battles, turns, teams)
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         
