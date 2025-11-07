@@ -23,7 +23,7 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
             param_grid=param_grid,
             #scoring=scoring,
             cv=kf,
-            verbose=1,
+            verbose=2,
             n_jobs=-1,  # How the process is run on local cores
             refit=True, 
 
@@ -37,7 +37,7 @@ def perform_grid_search(model: BaseEstimator, X: pd.DataFrame, y: pd.Series, par
             #scoring=scoring,
             n_jobs=-1,  # How the process is run on local cores
             random_state=SEED,
-            verbose=1
+            verbose=2
         )
         
     else:

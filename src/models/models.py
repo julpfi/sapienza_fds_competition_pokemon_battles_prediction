@@ -5,6 +5,7 @@ from xgboost import XGBClassifier
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, SelectFromModel, f_classif, mutual_info_classif
 
 from utils.config import SEED
 
@@ -66,18 +67,34 @@ def get_model(model_type:str):
     '''
     #TODO: Description 
     '''
-    if model_type in ["logistic", "knn"]:
-        # Create a pipeline adds scaling to the model 
-        # Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that
+    if model_type in ["logistic"]:
+        # Create a pipeline adds scaling to the model  (Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that)
         pipeline = Pipeline([
                 ('scaler', StandardScaler()),
+                ('feature_selection', SelectKBest(score_func=f_classif)),
                 ('model', get_base_model(model_type=model_type))
             ])
-        
-    elif model_type in ["random_forest", "xgboost", "hgb"]:
-        # Wrapping in simple pipeline for consistency
+    elif model_type in ["knn"]:
+        # Create a pipeline adds scaling to the model  (Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that)
         pipeline = Pipeline([
-            ('model', get_base_model(model_type=model_type))
+                ('scaler', StandardScaler()),
+                ('feature_selection', SelectKBest(score_func=mutual_info_classif)), 
+                ('model', get_base_model(model_type=model_type))
+            ])
+    elif model_type in ["hgb"]:
+        # Sklearn issue: No SelectFromModel for HGB 
+        # => Use XGBoost as proxy for feature selection as both are gradient boosting tree-based models (not perfect but resonable workaround)
+        proxy_model_selection = SelectFromModel(XGBClassifier(random_state=SEED, objective='binary:logistic'))
+        pipeline = Pipeline([
+            ('feature_selection', proxy_model_selection),
+            ('model', get_base_model(model_type))
+        ])
+    elif model_type in ["random_forest", "xgboost"]:
+        # Wrapping in simple pipeline for consistency
+        base_estimator = get_base_model(model_type=model_type)
+        pipeline = Pipeline([
+            ('feature_selection', SelectFromModel(base_estimator)),
+            ('model', base_estimator)
         ])
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -97,6 +114,7 @@ def get_param_grid(model_type:str):
         return  [
             # 1. lbfgs (L2 only)
             {
+                "feature_selection__k": [10, 15, 20, 25],
                 "model__solver": ["lbfgs"],
                 "model__penalty": ["l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -105,6 +123,7 @@ def get_param_grid(model_type:str):
             
             # 2. liblinear (L1 and L2))
             {
+                "feature_selection__k": [10, 15, 20, 25],
                 "model__solver": ["liblinear"],
                 "model__penalty": ["l1", "l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -113,6 +132,7 @@ def get_param_grid(model_type:str):
             
             # 3. Saga (L1 and L2)
             {
+                "feature_selection__k": [10, 15, 20, 25],
                 "model__solver": ["saga"],
                 "model__penalty": ["l1", "l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -121,6 +141,7 @@ def get_param_grid(model_type:str):
             
             # 4. Saga (both L1 and L2 with elasticnet)
             {
+                "feature_selection__k": [10, 15, 20, 25],
                 "model__solver": ["saga"],
                 "model__penalty": ["elasticnet"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -132,6 +153,7 @@ def get_param_grid(model_type:str):
     elif model_type == "random_forest":
         # In pipeline for consistency
         return {
+            "feature_selection__threshold": ['mean', 'median', 0.01],
             "model__n_estimators": [100, 200],
             "model__max_depth": [None, 10, 20, 40],
             "model__min_samples_split": [2, 5],
@@ -141,6 +163,7 @@ def get_param_grid(model_type:str):
     elif model_type == "xgboost": 
         # In pipeline for consistency
         return {
+            "feature_selection__threshold": ['mean', 'median', '0.01*mean'],
             'model__n_estimators': [100, 200, 500, 1000],
             'model__learning_rate': [0.01, 0.05, 0.1, 0.2],
             'model__max_depth': [3, 5, 7, 9],
@@ -153,6 +176,7 @@ def get_param_grid(model_type:str):
     elif model_type == "knn": 
         # Pipeline needed for scaling => must use 'model__' prefix
         return {
+            "feature_selection__k": [5, 10, 15, 20, 'all'], 
             'model__n_neighbors': [3, 5, 7, 9, 11, 15, 21],
             'model__weights': ['uniform', 'distance'],
             'model__metric': ['euclidean', 'manhattan']
@@ -160,6 +184,7 @@ def get_param_grid(model_type:str):
     elif model_type == "hgb":
         # Pipeline needed for scaling => must use 'model__' prefix
         return {
+            "feature_selection__threshold": ['mean', 'median', 0.01], 
             'model__learning_rate': [0.01, 0.05, 0.1, 0.2, 0.3],
             'model__max_leaf_nodes': [15, 20, 31, 40, 50, 60],
             'model__min_samples_leaf': [10, 20, 40],
