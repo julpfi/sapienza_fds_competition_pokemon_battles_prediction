@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from src.utils.config import POKEMON_TYPES 
+from .feature_selection import select_features
 
 # 0. Type Calc
 
@@ -256,9 +257,24 @@ def feature_engineering_version_6(
     print("Creating interaction feature (Speed x Type) ...")
     final_df['speed_x_type_adv'] = final_df['lead_spe_advantage'] * final_df['type_matchup_diff']
 
+    # 7. Feature Selection
+    print(f"Before filter selection: {final_df.shape[1]} columns")
 
-    # 7. Final Cleanup
-    redundant_component_features = [
+    exclude_cols = ['battle_id', 'player_won'] if train else ['battle_id']
+    final_df = select_features(
+        final_df, 
+        variance_threshold=0.01, 
+        correlation_threshold=0.95, 
+        exclude_cols=exclude_cols
+    )
+    
+    return final_df
+
+
+
+
+'''
+redundant_component_features = [
         # Type components
         'p1_type_matchup_score', 'p2_type_matchup_score',
         
@@ -277,9 +293,4 @@ def feature_engineering_version_6(
     
     # Define columns to drop: temp, original p2 types, and redundant components
     cols_to_drop = ['p1_lead_types', 'p2_lead_types'] + p2_types_cols + redundant_component_features
-    
-    final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
-    final_df = final_df.infer_objects(copy=False) # To improve memory usage
-
-    print(f"Feature engineering version 6 completed. Feature count: {final_df.shape[1]}\n\n")
-    return final_df
+'''
