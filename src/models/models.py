@@ -72,7 +72,7 @@ def get_model(model_type:str):
         # Create a pipeline adds scaling to the model  (Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that)
         pipeline = Pipeline([
                 ('scaler', StandardScaler()),
-                ('poly', PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)),          # polynomial features
+                #('poly', PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)),          # polynomial features
                 #('feature_selection', SelectKBest(score_func=f_classif)),                      # feature selection
                 ('model', get_base_model(model_type=model_type))
             ])
@@ -117,7 +117,7 @@ def get_param_grid(model_type:str):
             # 1. lbfgs (L2 only)
             {
                 #"feature_selection__k": [10, 15, 20, 25],               # feature selection
-                "poly__degree": [1, 2],                                  # polynomial features
+                #"poly__degree": [1, 2],                                  # polynomial features
                 "model__solver": ["lbfgs"],
                 "model__penalty": ["l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -127,7 +127,7 @@ def get_param_grid(model_type:str):
             # 2. liblinear (L1 and L2))
             {
                 #"feature_selection__k": [10, 15, 20, 25],               # feature selection
-                "poly__degree": [1, 2],                                  # polynomial features   
+                #"poly__degree": [1, 2],                                  # polynomial features   
                 "model__solver": ["liblinear"],
                 "model__penalty": ["l1", "l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -137,7 +137,7 @@ def get_param_grid(model_type:str):
             # 3. Saga (L1 and L2)
             {
                 #"feature_selection__k": [10, 15, 20, 25],                # feature selection
-                "poly__degree": [1, 2],                                   # polynomial features
+                #"poly__degree": [1, 2],                                   # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["l1", "l2"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
@@ -147,7 +147,7 @@ def get_param_grid(model_type:str):
             # 4. Saga (both L1 and L2 with elasticnet)
             {
                 #"feature_selection__k": [10, 15, 20, 25],                 # feature selection
-                "poly__degree": [1, 2],                                    # polynomial features
+                #"poly__degree": [1, 2],                                    # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["elasticnet"],
                 "model__C": [0.01, 0.1, 1.0, 10.0, 100.0],
