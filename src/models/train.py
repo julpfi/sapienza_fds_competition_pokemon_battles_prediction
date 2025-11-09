@@ -42,11 +42,23 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
 
         # Performs gridsearch and fits model with best parameterization
         model, _ = tune.perform_grid_search(model, X, y, param_grid, model_type=model_type)
+        
+        # RFE PART 
+        # Check if the model is a pipeline and contains RFE
+        if hasattr(model, 'named_steps'):
+            rfe = model.named_steps.get('feature_selection')  # Adjust the name if different
+            if rfe is not None:
+                # Get the support mask and feature names
+                selected_features = rfe.support_
+                feature_names = X.columns
+                best_features = feature_names[selected_features]
+                print("Best found features after RFE:", best_features.tolist())
+
 
     # No grid search => fit baseline model 
     else:
         print("Training without hyperparameter tuning\n")
         model.fit(X, y)
-
+    
     print(f"Completed training\n")
     return model

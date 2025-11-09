@@ -6,7 +6,7 @@ from xgboost import XGBClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectKBest, SelectFromModel, f_classif, mutual_info_classif
+from sklearn.feature_selection import SelectKBest, SelectFromModel, f_classif, mutual_info_classif, RFE
 
 from utils.config import SEED
 
@@ -73,7 +73,8 @@ def get_model(model_type:str):
         pipeline = Pipeline([
                 ('scaler', StandardScaler()),
                 #('poly', PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)),          # polynomial features
-                #('feature_selection', SelectKBest(score_func=f_classif)),                      # feature selection
+                #('feature_selection', SelectKBest(score_func=f_classif)),                                               # feature selection
+                ('feature_selection', RFE(estimator=get_logistic_regression(), n_features_to_select=None, step=1)),     # feature selection - recursive feature elimination
                 ('model', get_base_model(model_type=model_type))
             ])
     elif model_type in ["knn"]:
@@ -117,6 +118,7 @@ def get_param_grid(model_type:str):
             # 1. lbfgs (L2 only)
             {
                 #"feature_selection__k": [10, 15, 20, 25],               # feature selection
+                "feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                  # polynomial features
                 "model__solver": ["lbfgs"],
                 "model__penalty": ["l2"],
@@ -127,6 +129,7 @@ def get_param_grid(model_type:str):
             # 2. liblinear (L1 and L2))
             {
                 #"feature_selection__k": [10, 15, 20, 25],               # feature selection
+                "feature_selection__n_features_to_select": [None, 15, 20, 25, 30],              # recursive feature elimination
                 #"poly__degree": [1, 2],                                  # polynomial features   
                 "model__solver": ["liblinear"],
                 "model__penalty": ["l1", "l2"],
@@ -137,6 +140,7 @@ def get_param_grid(model_type:str):
             # 3. Saga (L1 and L2)
             {
                 #"feature_selection__k": [10, 15, 20, 25],                # feature selection
+                "feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                   # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["l1", "l2"],
@@ -147,6 +151,7 @@ def get_param_grid(model_type:str):
             # 4. Saga (both L1 and L2 with elasticnet)
             {
                 #"feature_selection__k": [10, 15, 20, 25],                 # feature selection
+                "feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                    # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["elasticnet"],
