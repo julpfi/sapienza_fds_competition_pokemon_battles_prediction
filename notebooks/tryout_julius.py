@@ -80,6 +80,8 @@ try:
         battle_for_display = battle_seledted.copy()
         battle_for_display['battle_timeline'] = battle_for_display.get('battle_timeline', [])[:turn_until]
         
+        #with open("JSON_BATTLE_"+str(battle_id), 'w', encoding='utf-8') as f:
+        #    json.dump(battle_seledted, f, ensure_ascii=False, indent=4)
         # Use json.dumps for pretty-printing the dictionary
         
         # print(json.dumps(battle_for_display, indent=4))
@@ -152,6 +154,7 @@ try:
         
 
         '''
+
 
     #df_train = pandas.DataFrame(train_data)
     #print(df_train["player_won"].value_counts())

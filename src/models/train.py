@@ -43,16 +43,28 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
         # Performs gridsearch and fits model with best parameterization
         model, _ = tune.perform_grid_search(model, X, y, param_grid, model_type=model_type)
         
-        # RFE PART 
-        # Check if the model is a pipeline and contains RFE
+
+        # Feature importance or selected features
         if hasattr(model, 'named_steps'):
-            rfe = model.named_steps.get('feature_selection')  # Adjust the name if different
-            if rfe is not None:
-                # Get the support mask and feature names
-                selected_features = rfe.support_
+            feature_selection = model.named_steps.get('feature_selection')
+            classifier = model.named_steps.get('model')
+            if feature_selection is not None:
+                selected_features = feature_selection.get_support()
                 feature_names = X.columns
                 best_features = feature_names[selected_features]
-                print("Best found features after RFE:", best_features.tolist())
+
+                if model_type in ["random_forest", "xgboost", "hgb"]:
+  
+                    importance = classifier.feature_importances_
+                    feature_names = X.columns
+            
+                    importance = classifier.feature_importances_
+                    if len(importance) == len(feature_names):
+                        feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importance})
+                        feature_importance_df.sort_values(by='Importance', ascending=False, inplace=True)
+                        print(feature_importance_df)
+                else: 
+                    print("Best found features after feature_selection:", best_features.tolist())
 
 
     # No grid search => fit baseline model 
@@ -60,5 +72,6 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
         print("Training without hyperparameter tuning\n")
         model.fit(X, y)
     
+
     print(f"Completed training\n")
     return model
