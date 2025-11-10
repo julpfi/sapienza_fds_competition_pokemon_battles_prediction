@@ -81,6 +81,25 @@ def _count_strategic_switches(df: pd.DataFrame, player: str) -> pd.Series:
         return df_switch.groupby('battle_id')['is_switch'].sum().astype(int)
 
 
+def _predicted_damage(row, side):
+    if row.get(f"{side}_move_details_category") == "PHYSICAL":
+        atk = row.get(f"{side}_lead_base_atk", 0)
+        df_def = row.get(f'{"p2" if side=="p1" else "p1"}_lead_base_def', 1)
+    elif row.get(f"{side}_move_details_category") == "SPECIAL":
+        atk = row.get(f"{side}_lead_base_spa", 0)
+        df_def = row.get(f'{"p2" if side=="p1" else "p1"}_lead_base_spd', 1)
+    else:
+        return 0.0
+
+    base_power = row.get(f"{side}_move_details_base_power", 0) or 0
+    acc = row.get(f"{side}_move_details_accuracy", 1.0) or 1.0
+    move_type = str(row.get(f"{side}_move_details_type", "")).lower()
+    types = row.get(f"{side}_lead_types", [])
+    stab = 1.5 if move_type in [t.lower() for t in types] else 1.0
+
+    return base_power * (atk / max(df_def, 1)) * acc * stab
+
+
 # ---------------------------------------------------------------------------------------------------------------
 # -------------------------------------- Feature Creators ------------------------------------------------------
 
@@ -201,13 +220,15 @@ def _create_timeline_features_hp(turns_df: pd.DataFrame, teams_df: pd.DataFrame,
     return hp_features
 
 
-# 3 Satuts Pressure
+# 3 Status Pressure Features
 def _create_status_pressure_features(turns_df: pd.DataFrame) -> pd.DataFrame:
-    # Calculates total turns spent afflicted by status, differentiating by severit
+    # Calculates total turns spent afflicted by status, differentiating by severity
+
     # "Major" status (annoying, but you can still move)
     MAJOR_STATUS = ['par', 'brn', 'psn', 'tox']
     # "Critical" status (move-ending, lose your turn)
     CRITICAL_STATUS = ['slp', 'frz']
+    CRITICAL_STATUS_MOVES = {'hypnosis','spore','sing','icebeam','blizzard'} 
     
     # 1. Count "Major" status turns 
     p1_major_status_turns = turns_df[turns_df['p1_pokemon_state_status'].isin(MAJOR_STATUS)].groupby('battle_id').size()
@@ -221,12 +242,31 @@ def _create_status_pressure_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     p2_critical_status_turns = turns_df[turns_df['p2_pokemon_state_status'].isin(CRITICAL_STATUS)].groupby('battle_id').size()
     p2_critical_status_turns.name = 'p2_critical_status_turns'
 
-    # 3. Merge all counts
+    # 3. Critical status success rate 
+    p1_attempts = turns_df[turns_df['p1_move_details_name'].isin(CRITICAL_STATUS_MOVES)].groupby('battle_id').size()
+    p1_attempts.name = 'p1_attempts'
+    p1_success = turns_df[turns_df['p2_pokemon_state_status'].isin(CRITICAL_STATUS) & turns_df['p1_move_details_name'].isin(CRITICAL_STATUS_MOVES)].groupby('battle_id').size()
+    p1_success.name = 'p1_success' 
+
+    p2_attempts = turns_df[turns_df['p2_move_details_name'].isin(CRITICAL_STATUS_MOVES)].groupby('battle_id').size()
+    p2_attempts.name = 'p2_attempts'
+    p2_success = turns_df[turns_df['p1_pokemon_state_status'].isin(CRITICAL_STATUS) & turns_df['p2_move_details_name'].isin(CRITICAL_STATUS_MOVES)].groupby('battle_id').size()
+    p2_success.name = 'p2_success' 
+
+    success_rate_df = pd.concat([p1_attempts, p1_success, p2_attempts, p2_success], axis=1).fillna(0)
+
+    success_rate_df['p1_critical_status_success_rate'] = success_rate_df['p1_success'] / success_rate_df['p1_attempts'].replace(0, np.nan)
+    success_rate_df['p2_critical_status_success_rate'] = success_rate_df['p2_success'] / success_rate_df['p2_attempts'].replace(0, np.nan)
+
+    final_rates_df = success_rate_df[['p1_critical_status_success_rate', 'p2_critical_status_success_rate']]
+
+    # 4. Merge all features
     status_df = pd.merge(p1_major_status_turns, p2_major_status_turns, on='battle_id', how='outer')
     status_df = pd.merge(status_df, p1_critical_status_turns, on='battle_id', how='outer')
     status_df = pd.merge(status_df, p2_critical_status_turns, on='battle_id', how='outer')
-    
-    status_df = status_df.fillna(0).astype(int) 
+    status_df = pd.merge(status_df, final_rates_df, on='battle_id', how='outer')
+
+    status_df = status_df.fillna(0)    
     return status_df
 
 
@@ -634,6 +674,36 @@ def _create_switch_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     return switch_df
 
 
+# 16. Feature: Predicted Damage Ratio on Turn 1
+def _create_predicted_damage_turn_1(battles_df: pd.DataFrame, teams_df: pd.DataFrame, turns_df: pd.DataFrame) -> pd.DataFrame:
+    
+    t1 = turns_df[turns_df["turn"] == 1].copy()
+
+    if "types" not in teams_df.columns:
+        teams_df["types"] = teams_df.apply(lambda r: [str(r.get("type_1", "notype")).lower(), str(r.get("type_2", "notype")).lower()], axis=1)
+
+    p1_lead = (teams_df[teams_df["pokemon_nr"] == 0][["battle_id", "base_atk", "base_spa", "base_def", "base_spd", "base_spe", "types"]]
+        .rename(columns={
+                "base_atk": "p1_lead_base_atk",
+                "base_spa": "p1_lead_base_spa",
+                "base_def": "p1_lead_base_def",
+                "base_spd": "p1_lead_base_spd",
+                "base_spe": "p1_lead_base_spe",
+                "types": "p1_lead_types"}))
+
+    p2_lead_cols = ["battle_id", "p2_lead_base_atk", "p2_lead_base_spa", "p2_lead_base_def", "p2_lead_base_spd", "p2_lead_types"]
+    if "p2_lead_types" not in battles_df.columns:
+        battles_df["p2_lead_types"] = battles_df.apply(lambda row: _get_types_list(row, 'p2_lead_type_'), axis=1)
+
+
+    t1 = t1.merge(p1_lead, on="battle_id", how="left")
+    t1 = t1.merge(battles_df[p2_lead_cols], on="battle_id", how="left")
+
+    t1["p1_expected_dmg"] = t1.apply(lambda r: _predicted_damage(r, "p1"), axis=1)
+    t1["p2_expected_dmg"] = t1.apply(lambda r: _predicted_damage(r, "p2"), axis=1)
+
+    t1["expected_damage_ratio_turn_1"] = np.log1p(t1["p1_expected_dmg"]) - np.log1p(t1["p2_expected_dmg"])
+    return t1[["battle_id", "expected_damage_ratio_turn_1"]].fillna(0)
 
 
 # -------------------------------------------------------------------------------------------------------------
@@ -716,6 +786,10 @@ def feature_engineering_version_12(
     switch_features = _create_switch_features(turns_df)
     final_df = pd.merge(final_df, switch_features, on='battle_id', how='left')
     
+    # 16. Predicted Damage Ratio on Turn 1
+    print("Creating predicted damage ratio on turn 1 feature...")
+    predicted_damage_t1_features = _create_predicted_damage_turn_1(battles_df, teams_df, turns_df)
+    final_df = pd.merge(final_df, predicted_damage_t1_features, on='battle_id', how='left')
 
     # ------------------------- Final Cleanup --------------------------
     lead_types_col = ['p1_lead_types', 'p2_lead_types'] 
@@ -725,6 +799,10 @@ def feature_engineering_version_12(
         'p2_lead_types',
         'p2_lead_name',
         'p2_lead_level',
+        'expected_damage_ratio_turn_1',
+        'p1_critical_status_success_rate',
+        'p2_critical_status_success_rate',
+        'hp_trend_slope',
 
         '''
         'p1_team_mean_atk', 
