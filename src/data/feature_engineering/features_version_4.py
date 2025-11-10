@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils.config import POKEMON_TYPES
+from src.utils.config import POKEMON_TYPES
 
 # 0. Type Calc
 

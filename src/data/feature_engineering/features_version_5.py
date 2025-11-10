@@ -190,7 +190,7 @@ def feature_engineering_version_5(
     teams_df: pd.DataFrame
 ) -> pd.DataFrame:
     
-    # Creates the v4 feature set.
+    # Creates the v5 feature set.
     # Removed 0-importance features (Turn 1 switch/status, utility boosts).
     # Refined status features (major vs critical).
     
@@ -209,7 +209,7 @@ def feature_engineering_version_5(
     timeline_features = _create_timeline_features(turns_df)
     final_df = pd.merge(final_df, timeline_features, on='battle_id', how='left')
     
-    # 3. Status Pressure (Refined v4)
+    # 3. Status Pressure (Refined v5)
     print("Creating refined status pressure features...")
     status_features = _create_status_pressure_features_v4(turns_df)
     final_df = pd.merge(final_df, status_features, on='battle_id', how='left')
