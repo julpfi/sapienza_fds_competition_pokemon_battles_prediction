@@ -3,11 +3,12 @@
 import pandas as pd
 from sklearn.base import BaseEstimator
 
-from . import models as models
+from .model_types import models as models
 from . import tune 
-from . import custom_voting_model
-from . import voting_model
-from utils.user_model_selection import get_user_model_selection_voting, get_user_model_selection_custom_voting
+from .model_types import custom_voting_model
+from .model_types import voting_model
+from .model_types import meta_model
+from utils.user_model_selection import get_user_model_selection
 
 
 def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bool=True)-> BaseEstimator:
@@ -29,13 +30,17 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
     # Train is the main entry point for training the models 
     #   => For the two voting classifiers we call the differing methods from here
     if model_type == "custom_voting": 
-        model_names = get_user_model_selection_custom_voting()
+        model_names = get_user_model_selection(include_xgb=False)
         print("Selected models for Custom Voting:", model_names)
         return custom_voting_model.train_voting(X=X, y=y, model_names=model_names,  grid_search=grid_search)
     elif model_type == "voting": 
-        model_names = get_user_model_selection_voting()
+        model_names = get_user_model_selection()
         print("Selected models for Voting:", model_names)
         return voting_model.train_voting(X=X, y=y, model_names=model_names)
+    elif model_type == "meta": 
+        model_names = get_user_model_selection()
+        print("Selected models for Meta Model:", model_names)
+        return meta_model.train_meta_model(X=X, y=y, model_names=model_names)
 
     model = models.get_model(model_type=model_type)
 

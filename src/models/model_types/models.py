@@ -75,8 +75,8 @@ def get_model(model_type:str):
     if model_type in ["logistic"]:
         # Create a pipeline adds scaling to the model  (Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that)
         pipeline = Pipeline([
-                ('scaler', StandardScaler()),
                 #('poly', PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)),          # polynomial features
+                ('scaler', StandardScaler()),
                 #('feature_selection', SelectKBest(score_func=f_classif)),                                               # feature selection
                 ('feature_selection', RFE(estimator=get_logistic_regression(), n_features_to_select=None, step=1)),     # feature selection - recursive feature elimination
                 ('model', get_base_model(model_type=model_type))
@@ -122,7 +122,7 @@ def get_param_grid(model_type:str):
         return  [
             # 1. lbfgs (L2 only)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                         # feature selection
+                #"feature_selection__k": [10, 15, 20, "all"],                                         # feature selection
                 "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                              # polynomial features
                 "model__solver": ["lbfgs"],
@@ -133,7 +133,7 @@ def get_param_grid(model_type:str):
             
             # 2. liblinear (L1 and L2))
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                          # feature selection
+                #"feature_selection__k": [10, 15, 20, "all"],                                          # feature selection
                 "feature_selection__n_features_to_select": [None, 10, 15, 20],              # recursive feature elimination
                 #"poly__degree": [1, 2],                                                               # polynomial features   
                 "model__solver": ["liblinear"],
@@ -144,7 +144,7 @@ def get_param_grid(model_type:str):
             
             # 3. Saga (L1 and L2)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                             # feature selection
+                #"feature_selection__k": [10, 15, 20, "all"],                                             # feature selection
                 "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                              # polynomial features
                 "model__solver": ["saga"],
@@ -155,7 +155,7 @@ def get_param_grid(model_type:str):
             
             # 4. Saga (both L1 and L2 with elasticnet)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                           # feature selection
+                #"feature_selection__k": [10, 15, 20, "all"],                                           # feature selection
                 "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                                # polynomial features
                 "model__solver": ["saga"],

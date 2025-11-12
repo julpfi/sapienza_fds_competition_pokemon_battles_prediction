@@ -1,14 +1,8 @@
 import pandas as pd
 from .feature_selection import select_features
 
-from .features_version_1 import feature_engineering_version_1
-from .features_version_2 import feature_engineering_version_2
-from .features_version_3 import feature_engineering_version_3
-from .features_version_4 import feature_engineering_version_4
-from .features_version_5 import feature_engineering_version_5
 from .features_version_6 import feature_engineering_version_6
 from .features_version_7 import feature_engineering_version_7
-
 from .features_version_9 import feature_engineering_version_9
 from .features_version_10 import feature_engineering_version_10
 from .features_version_11 import feature_engineering_version_11
@@ -24,17 +18,7 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
     if train and "player_won" not in battles.columns:
         raise KeyError("Expected player_won column in train data but was not found")
 
-    match version: 
-        case 1: 
-            features = feature_engineering_version_1(train, battles, turns, teams)
-        case 2: 
-            features = feature_engineering_version_2(train, battles, turns, teams)
-        case 3: 
-            features = feature_engineering_version_3(train, battles, turns, teams)   
-        case 4: 
-            features = feature_engineering_version_4(train, battles, turns, teams)  
-        case 5: 
-            features = feature_engineering_version_5(train, battles, turns, teams)       
+    match version:       
         case 6: 
             features = feature_engineering_version_6(train, battles, turns, teams)    
             features = select_features(
