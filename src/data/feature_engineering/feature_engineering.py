@@ -13,6 +13,7 @@ from .features_version_9 import feature_engineering_version_9
 from .features_version_10 import feature_engineering_version_10
 from .features_version_11 import feature_engineering_version_11
 from .features_version_12 import feature_engineering_version_12
+from .features_version_13 import feature_engineering_version_13
 
 
 # try if works: from src.data.feature_engineering.features_version_1 import feature_engineering_version_1
@@ -49,6 +50,8 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
             features = feature_engineering_version_11(train, battles, turns, teams)
         case 12:
             features = feature_engineering_version_12(train, battles, turns, teams)
+        case 13:
+            features = feature_engineering_version_13(train, battles, turns, teams)
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         

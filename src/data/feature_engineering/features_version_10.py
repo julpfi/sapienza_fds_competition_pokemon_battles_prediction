@@ -134,6 +134,8 @@ def _create_timeline_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     p2_team_sum_hp = (p2_participating_sum_hp + p2_non_participating_hp)
     p2_team_sum_hp.name = 'p2_team_sum_hp'
 
+
+
     # 4. Merge HP features 
     hp_df = pd.merge(p1_team_avg_hp, p2_team_avg_hp, on='battle_id', how='outer')
     hp_df = pd.merge(hp_df, p1_team_sum_hp, on='battle_id', how='outer')
@@ -464,6 +466,9 @@ def feature_engineering_version_10(
         'p2_lead_base_spa', 'p2_lead_base_spe',
         'p2_lead_defense',
         'p2_lead_name', 
+        
+        
+        
 
         #higly correlated features (NEW PART)
         #'offense_boost_advantage', 'first_move_advantage', 'team_hp_sum_advantage',
