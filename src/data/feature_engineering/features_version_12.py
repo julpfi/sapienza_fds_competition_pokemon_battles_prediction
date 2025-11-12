@@ -791,6 +791,13 @@ def feature_engineering_version_12(
     predicted_damage_t1_features = _create_predicted_damage_turn_1(battles_df, teams_df, turns_df)
     final_df = pd.merge(final_df, predicted_damage_t1_features, on='battle_id', how='left')
 
+    # 17. Some interaction features 
+    # final_df['inter_healthy_ko_adv'] = final_df['healthy_pokemon_advantage'] * final_df['ko_advantage']
+    # final_df['inter_p1_dangerous_turns'] = final_df['p1_critical_status_turns'] * final_df['p2_hits_p1_super_effective']
+    # final_df['inter_hp_momentum_switch_adv'] = final_df['hp_momentum_advantage'] * final_df['switch_advantage']
+
+
+
     # ------------------------- Final Cleanup --------------------------
     lead_types_col = ['p1_lead_types', 'p2_lead_types'] 
     p2_types_cols = [f'p2_lead_type_{t}' for t in POKEMON_TYPES]
@@ -851,27 +858,28 @@ def feature_engineering_version_12(
         'big_three_adv',    # INF  NOT NEEDED BECAUSE WE HAVE tauros and defensive core adv
         'chansey_adv',      # INF 
         'snorlax_adv',      # INF 
-        #'tauros_adv',       # INF  TEST
+        #'tauros_adv',    
 
-        #'recovery_turn_adv',    # TEST
-        #'trade_success_adv',   # TEST
+        #'recovery_turn_adv', 
+        #'trade_success_adv', 
         'trade_turn_adv', 
-        #'trap_turn_advantage',   # TEST
+        #'trap_turn_advantage',  
 
-        'p1_ko_count',   # INF  #TEST
+        'p1_ko_count', 
         'p2_ko_count',
-        #'ko_advantage',   # INF  #TEST  SEE IF KO FEATURE IS STILL CONTAINED
+        #'ko_advantage',  
     ]
 
     logistic_redundant_component_features = [
 
         'damage_pressure_advantage',
         'hp_trend_slope',
+        'p2_hits_p1_not_effective',
     ]
     
     
     # Define columns to drop: temp, original P2 types, and redundant components
-    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features #+ logistic_redundant_component_features 
+    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features + logistic_redundant_component_features 
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
 
     final_df = final_df.infer_objects(copy=False)

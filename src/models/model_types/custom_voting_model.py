@@ -5,13 +5,19 @@ from sklearn.utils.validation import check_X_y, check_is_fitted
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from utils.config import SEED
-from . import tune
+from .. import tune
 from .models import get_model, get_param_grid
 
 
 class CustomVotingClassifier(BaseEstimator, ClassifierMixin):    
     '''
-    #TODO Description 
+    Background of this Custom Implementation: 
+        This CustomVotingClassifier was implemented based on the logic of the Sklearn VotingClassifer. The issue is that sklearn 
+        might contain a bug (at least we had issue) to implement XGBoost within the VotingClassifier. The resulting error arose inside 
+        the sklearn pipeline/model handling and states: "ValueError: The estimator XGBClassifier should be a classifier". Such error
+        is also documented on other classifier on Github and Stackoverflow and any suggested fixes did not work. At the time, we 
+        focussed on having XGBoost as one of the main weak learners in the voting so we decided on a simple local replica. Later,
+        we also implemented the HistGradientBoostingClassifier which as the "LightGBM-sklearn-version" works with the normal voting classifier.
     '''
 
     def __init__(self, estimators):
@@ -21,7 +27,7 @@ class CustomVotingClassifier(BaseEstimator, ClassifierMixin):
     def fit(self, X, y):
         check_X_y(X, y)
         
-        self.estimators_ = [] # Stores fitted estimators
+        self.estimators_ = []
         self.classes_ = np.unique(y)
         
         for name, estimator in self.estimators:
@@ -46,9 +52,6 @@ class CustomVotingClassifier(BaseEstimator, ClassifierMixin):
 
 
 def get_estimators(X, y, model_names, grid_search=True):
-    '''
-    #TODO Description 
-    '''
     estimators = []
     for name in model_names:
         if grid_search:
@@ -68,9 +71,6 @@ def get_estimators(X, y, model_names, grid_search=True):
 
 
 def train_voting(X: pd.DataFrame, y: pd.Series, model_names:list[str], grid_search: bool = True) -> CustomVotingClassifier:
-    '''
-    #TODO Description 
-    ''' 
     # Get Weaker Base Models 
     estimators = get_estimators(X, y, model_names=model_names, grid_search=grid_search)
     

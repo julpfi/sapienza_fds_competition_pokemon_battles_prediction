@@ -5,7 +5,7 @@ import pandas as pd
 import time
 
 from .models import get_model, get_param_grid
-from .tune import perform_grid_search
+from models.tune import perform_grid_search
 from utils.config import SEED
 
 def train_voting(X: pd.DataFrame, y: pd.Series, model_names: list,) -> BaseEstimator:
