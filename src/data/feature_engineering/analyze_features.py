@@ -136,14 +136,14 @@ if __name__ == "__main__":
 
     # 2.1. Correlation Heatmap
     # Pass X_train to the function
-    plot_correlation_heatmap(X_train, save_path=f"feature_v{version}_correlation_heatmap.png")
+    plot_correlation_heatmap(X_train, save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_correlation_heatmap.png")
 
     # 2.2. VIF Calculation
     # Pass X_train to the function
     vif_scores = calculate_vif(X_train)
     
     if vif_scores is not None:
-        vif_scores.to_csv(f"feature_v{version}_vif_scores.csv", index=False)
+        vif_scores.to_csv(f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_vif_scores.csv", index=False)
         print(f"\n[Analysis] VIF scores saved to feature_v{version}_vif_scores.csv")
 
     print("\n ---------- Analysis Complete ---------- \n")
