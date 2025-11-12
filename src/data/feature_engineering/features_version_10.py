@@ -463,7 +463,15 @@ def feature_engineering_version_10(
         'p2_lead_base_def',
         'p2_lead_base_spa', 'p2_lead_base_spe',
         'p2_lead_defense',
-        'p2_lead_name',      
+        'p2_lead_name', 
+
+        #higly correlated features (NEW PART)
+        #'offense_boost_advantage', 'first_move_advantage', 'team_hp_sum_advantage',
+        #'p1_team_avg_hp', 'p1_ko_count',
+
+        #Inf VIF score
+        #'p2_ko_count','p1_ko_count', 'p2_team_sum_hp','p1_team_sum_hp',
+        #'p1_pokemon_left', 'p2_pokemon_left','p1_team_avg_hp','p2_team_avg_hp'
     ]
     
     # Define columns to drop: temp, original P2 types, and redundant components
