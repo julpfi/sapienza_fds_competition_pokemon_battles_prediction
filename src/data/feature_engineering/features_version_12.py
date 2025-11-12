@@ -799,46 +799,79 @@ def feature_engineering_version_12(
         'p2_lead_types',
         'p2_lead_name',
         'p2_lead_level',
-        'expected_damage_ratio_turn_1',
-        'p1_critical_status_success_rate',
-        'p2_critical_status_success_rate',
-        'hp_trend_slope',
 
-        '''
-        'p1_team_mean_atk', 
-        'p1_team_mean_spa', 
-        'p1_mean_offense',
-        'p2_lead_base_def',
-        'p2_lead_base_spa', 
-        'p2_lead_defense',
-        'p1_team_mean_def',
-        'p1_team_mean_spd',
-        'p2_hits_p1_not_effective',
-
-        'p1_pokemon_left',
-        'p2_pokemon_left',
-        'ko_advantage',
-        'damage_taken_advantage',
-        'hp_momentum_advantage',
-        'lead_spe_advantage',
+            
+        # 'lead_diff_spe',      #INF
+        'lead_diff_hp',         # LIN TO lead_diff_hp => out for logistic 
+        'lead_diff_def',      #INF
+        'lead_diff_spa',      #INF
+        'lead_diff_spd',      #INF
+        'lead_diff_atk',      #INF
+        # 'lead_diff_offense',   # INF  TEST
+        # 'lead_diff_defense',   # INF   TEST
+    
+        'p1_def_core',      #INF
+        'p2_def_core',  
+        'p2_lead_base_atk',  # VERY HIGH
+        'p2_lead_base_def',  # VERY HIGH
+        'p2_lead_base_hp', 
+        'p2_lead_base_spa',   # INF
+        'p2_lead_base_spd',   # INF 
+        'p2_lead_base_spe',   # INF
+        
+        
+        'lead_spe_diff',       # INF   (Duplicate)
+        'p1_team_mean_spa',    # INF
+        'p1_team_mean_spd',    # INF
+        'p1_team_mean_spe',    # INF  
+        'p1_team_mean_atk',    # VERY HIGH
+        # 'p1_team_mean_hp',     # VERY HIGH   
+        'p1_team_mean_def',   # TEST TAKE OUT
+        'lead_team_mean_spe_adv',    # INF
+        #'p1_team_off_vs_p2_lead_def_ratio',  # VERY HIGH
         'type_matchup_diff',
-        'first_move_advantage',
-        'offense_boost_advantage',
-        'defense_boost_advantage',
-        'speed_boost_advantage',
-        'chansey_adv',
-        'snorlax_adv',
-        'defensive_core_adv',
-        'trade_turn_adv',
-        'switch_advantage',
+        #'expected_damage_ratio_turn_1', 
+        # 'p1_stab_count',
+        # 'defensive_core_adv',     # INF   
+        'p1_team_off_vs_p2_lead_def_ratio', 
 
-        '''
+        #'p2_hits_p1_not_effective',
+        #'p2_hits_p1_super_effective',   #TEST  SEE IF THERE IS SUPER EFFECTIVE IN THERE
+        'p1_switch_count',
+        'p2_switch_count',  # TEST TAKEOUT FOR switch_advantage
+        # 'switch_advantage',  # INF  #TEST
+
+        'dynamic_first_move_ratio', 
+        'first_move_advantage',   # OUT => lead_spd_diff is the equivalent 
+          
+        'defense_boost_advantage', 
+        'offense_boost_advantage',
+        'speed_boost_advantage',    
+        
+        'big_three_adv',    # INF  NOT NEEDED BECAUSE WE HAVE tauros and defensive core adv
+        'chansey_adv',      # INF 
+        'snorlax_adv',      # INF 
+        #'tauros_adv',       # INF  TEST
+
+        #'recovery_turn_adv',    # TEST
+        #'trade_success_adv',   # TEST
+        'trade_turn_adv', 
+        #'trap_turn_advantage',   # TEST
+
+        'p1_ko_count',   # INF  #TEST
+        'p2_ko_count',
+        #'ko_advantage',   # INF  #TEST  SEE IF KO FEATURE IS STILL CONTAINED
     ]
 
+    logistic_redundant_component_features = [
+
+        'damage_pressure_advantage',
+        'hp_trend_slope',
+    ]
     
     
     # Define columns to drop: temp, original P2 types, and redundant components
-    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features
+    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features #+ logistic_redundant_component_features 
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
 
     final_df = final_df.infer_objects(copy=False)
