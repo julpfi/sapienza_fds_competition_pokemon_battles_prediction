@@ -792,7 +792,7 @@ def feature_engineering_version_12(
     final_df = pd.merge(final_df, predicted_damage_t1_features, on='battle_id', how='left')
 
     # 17. Some interaction features 
-    # final_df['inter_healthy_ko_adv'] = final_df['healthy_pokemon_advantage'] * final_df['ko_advantage']
+    final_df['inter_healthy_ko_adv'] = final_df['healthy_pokemon_advantage'] * final_df['ko_advantage']
     # final_df['inter_p1_dangerous_turns'] = final_df['p1_critical_status_turns'] * final_df['p2_hits_p1_super_effective']
     # final_df['inter_hp_momentum_switch_adv'] = final_df['hp_momentum_advantage'] * final_df['switch_advantage']
 
@@ -840,7 +840,7 @@ def feature_engineering_version_12(
         #'expected_damage_ratio_turn_1', 
         # 'p1_stab_count',
         # 'defensive_core_adv',     # INF   
-        'p1_team_off_vs_p2_lead_def_ratio', 
+        # 'p1_team_off_vs_p2_lead_def_ratio', 
 
         #'p2_hits_p1_not_effective',
         #'p2_hits_p1_super_effective',   #TEST  SEE IF THERE IS SUPER EFFECTIVE IN THERE
@@ -867,7 +867,9 @@ def feature_engineering_version_12(
 
         'p1_ko_count', 
         'p2_ko_count',
-        #'ko_advantage',  
+        #'ko_advantage', 
+        #'hp_trend_slope',
+        'p2_hits_p1_not_effective', 
     ]
 
     logistic_redundant_component_features = [
@@ -879,7 +881,7 @@ def feature_engineering_version_12(
     
     
     # Define columns to drop: temp, original P2 types, and redundant components
-    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features + logistic_redundant_component_features 
+    cols_to_drop = lead_types_col + p2_types_cols + redundant_component_features #+ logistic_redundant_component_features 
     final_df = final_df.drop(columns=cols_to_drop, errors='ignore').fillna(0)
 
     final_df = final_df.infer_objects(copy=False)
