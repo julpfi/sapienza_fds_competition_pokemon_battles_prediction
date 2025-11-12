@@ -30,11 +30,11 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
     # Train is the main entry point for training the models 
     #   => For the two voting classifiers we call the differing methods from here
     if model_type == "custom_voting": 
-        model_names = get_user_model_selection(include_xgb=False)
+        model_names = get_user_model_selection()
         print("Selected models for Custom Voting:", model_names)
         return custom_voting_model.train_voting(X=X, y=y, model_names=model_names,  grid_search=grid_search)
     elif model_type == "voting": 
-        model_names = get_user_model_selection()
+        model_names = get_user_model_selection(include_xgb=False)
         print("Selected models for Voting:", model_names)
         return voting_model.train_voting(X=X, y=y, model_names=model_names)
     elif model_type == "meta": 
