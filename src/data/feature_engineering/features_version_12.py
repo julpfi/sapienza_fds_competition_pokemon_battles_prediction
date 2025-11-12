@@ -807,6 +807,8 @@ def feature_engineering_version_12(
         'p2_lead_name',
         'p2_lead_level',
 
+
+        '''
             
         # 'lead_diff_spe',      #INF
         'lead_diff_hp',         # LIN TO lead_diff_hp => out for logistic 
@@ -870,6 +872,7 @@ def feature_engineering_version_12(
         #'ko_advantage', 
         #'hp_trend_slope',
         'p2_hits_p1_not_effective', 
+        '''
     ]
 
     logistic_redundant_component_features = [
