@@ -4,6 +4,7 @@ import src.data.feature_engineering.feature_engineering as feature_engineering
 import src.models.predict  as predict
 import src.models.train as train
 from src.utils.user_model_selection import get_user_model_selection_main
+from data.feature_engineering.features_version_14 import _create_pokemon_stats_map
 
 if __name__ == "__main__":
     print("\n ---------- Starting ML Pipeline ---------- \n")
@@ -20,6 +21,10 @@ if __name__ == "__main__":
     # 1.1.  Load and clean train data
     raw_train_data = load.load_data(train=True)
     battles_train, turns_train, teams_train = clean.clean_data(raw_data=raw_train_data, train=True)
+    pokedex = None
+    default_stats = None
+    if version == 14:
+        pokedex, default_stats = _create_pokemon_stats_map(teams_df=teams_train, battles_df=battles_train)
 
     # 1.2. Create features for train data
     features_train = feature_engineering.feature_engineering(
@@ -27,7 +32,9 @@ if __name__ == "__main__":
         turns=turns_train,
         teams=teams_train,
         version=version,
-        train=True)
+        train=True,
+        pokemon_stats_map=pokedex,
+        default_pokemon_stats=default_stats)
 
     y_train = features_train["player_won"]
 
@@ -51,7 +58,9 @@ if __name__ == "__main__":
             turns=turns_test, 
             teams=teams_test, 
             version=version, 
-            train=False)
+            train=False,
+            pokemon_stats_map=pokedex,
+            default_pokemon_stats=default_stats)
 
         battle_ids_test = features_test["battle_id"]
         X_test = features_test.drop(columns=['battle_id', 'player_won'])   
