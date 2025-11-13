@@ -1,6 +1,6 @@
-# FDS Challenge on Kaggle: Pokemon Battles Prediction 2025 
+# Kaggle Challenge - Pokemon Battles Prediction 2025 
 
-## Infomration
+## Information
 1. Course: Fundamentals of Data Science (9 CFU)
 2. Team: Julius Pfingsten, Ludovico Piras, and Nicolò Boscherini
 3. Repo Name: sapienza_fds_competition_pokemon_battles_prediction
