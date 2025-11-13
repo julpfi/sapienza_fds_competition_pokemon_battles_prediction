@@ -926,8 +926,8 @@ def feature_engineering_version_12(
 
 
         # Added these from v13 on 
-        'p1_team_avg_hp',
-        'p2_team_avg_hp',
+        #'p1_team_avg_hp',
+        #'p2_team_avg_hp',
         'p1_team_sum_hp',
         'p2_team_sum_hp',
     ]
