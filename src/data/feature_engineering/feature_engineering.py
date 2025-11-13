@@ -3,15 +3,13 @@ from .feature_selection import select_features
 
 from .features_version_6 import feature_engineering_version_6
 from .features_version_7 import feature_engineering_version_7
+
 from .features_version_9 import feature_engineering_version_9
 from .features_version_10 import feature_engineering_version_10
 from .features_version_11 import feature_engineering_version_11
-<<<<<<< HEAD
-from .features_version_14 import feature_engineering_version_14
-=======
 from .features_version_12 import feature_engineering_version_12
 from .features_version_13 import feature_engineering_version_13
->>>>>>> f7302ed7a7160a8bae249ee22485e3b191e7c290
+from .features_version_14 import feature_engineering_version_14
 
 
 # try if works: from src.data.feature_engineering.features_version_1 import feature_engineering_version_1
@@ -36,25 +34,22 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
             features = feature_engineering_version_10(train, battles, turns, teams)
         case 11:
             features = feature_engineering_version_11(train, battles, turns, teams)
-<<<<<<< HEAD
+        case 12:
+            features = feature_engineering_version_12(train, battles, turns, teams)
+        case 13:
+            features = feature_engineering_version_13(train, battles, turns, teams)
         case 14:
             pokedex = kwargs.get('pokemon_stats_map')
             default_stats = kwargs.get('default_pokemon_stats')
             if pokedex is None or default_stats is None:
                 raise ValueError("pokemon_stats_map and default_pokemon_stats must be provided for version 14")
-            features = feature_engineering_version_12(
+            features = feature_engineering_version_14(
                 train=train, 
                 battles_df=battles, 
                 turns_df=turns, 
                 teams_df=teams,
                 pokemon_stats_map=kwargs.get('pokemon_stats_map', None),  
                 default_pokemon_stats=kwargs.get('default_pokemon_stats', None))
-=======
-        case 12:
-            features = feature_engineering_version_12(train, battles, turns, teams)
-        case 13:
-            features = feature_engineering_version_13(train, battles, turns, teams)
->>>>>>> f7302ed7a7160a8bae249ee22485e3b191e7c290
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         
