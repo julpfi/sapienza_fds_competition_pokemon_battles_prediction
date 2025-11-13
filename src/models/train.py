@@ -1,11 +1,14 @@
 
-from . import models as models
-from . import tune 
+
 import pandas as pd
 from sklearn.base import BaseEstimator
-from . import custom_voting_model
-from . import voting_model
-from utils.user_model_selection import get_user_model_selection_voting, get_user_model_selection_custom_voting
+
+from .model_types import models as models
+from . import tune 
+from .model_types import custom_voting_model
+from .model_types import voting_model
+from .model_types import meta_model
+from utils.user_model_selection import get_user_model_selection
 
 
 def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bool=True)-> BaseEstimator:
@@ -21,18 +24,23 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
         grid_search (bool): Determines if basemodel is return or if grid search is executed 
                             which fits the model for the best parameters  
     Retunrs: 
-        Base estimator: Fitted model (basemodel or best-fit from gird search; 
-                                    for logistic that is packed inside the pipeline)
+        Base estimator: Fitted model (Best fit form GridSearch/RandomSearchCV)
     '''
 
+    # Train is the main entry point for training the models 
+    #   => For the two voting classifiers we call the differing methods from here
     if model_type == "custom_voting": 
-        model_names = get_user_model_selection_custom_voting()
+        model_names = get_user_model_selection(include_xgb=False)
         print("Selected models for Custom Voting:", model_names)
         return custom_voting_model.train_voting(X=X, y=y, model_names=model_names,  grid_search=grid_search)
     elif model_type == "voting": 
-        model_names = get_user_model_selection_voting()
+        model_names = get_user_model_selection()
         print("Selected models for Voting:", model_names)
         return voting_model.train_voting(X=X, y=y, model_names=model_names)
+    elif model_type == "meta": 
+        model_names = get_user_model_selection()
+        print("Selected models for Meta Model:", model_names)
+        return meta_model.train_meta_model(X=X, y=y, model_names=model_names)
 
     model = models.get_model(model_type=model_type)
 
@@ -43,28 +51,25 @@ def train(X:pd.DataFrame, y:pd.Series, model_type:str="logistic", grid_search:bo
         # Performs gridsearch and fits model with best parameterization
         model, _ = tune.perform_grid_search(model, X, y, param_grid, model_type=model_type)
         
-
-        # Feature importance or selected features
+        # Prints feature importance for tree based classifiers (random forest and xgb)
         if hasattr(model, 'named_steps'):
             feature_selection = model.named_steps.get('feature_selection')
             classifier = model.named_steps.get('model')
-            if feature_selection is not None:
-                selected_features = feature_selection.get_support()
-                feature_names = X.columns
-                best_features = feature_names[selected_features]
-
-                if model_type in ["random_forest", "xgboost", "hgb"]:
-  
-                    importance = classifier.feature_importances_
-                    feature_names = X.columns
+            current_features = X.columns 
             
-                    importance = classifier.feature_importances_
-                    if len(importance) == len(feature_names):
-                        feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importance})
-                        feature_importance_df.sort_values(by='Importance', ascending=False, inplace=True)
-                        print(feature_importance_df)
-                else: 
-                    print("Best found features after feature_selection:", best_features.tolist())
+            if feature_selection is not None:
+                selected_mask = feature_selection.get_support()
+                current_features = X.columns[selected_mask] 
+                print(f"\n--- Selected Features for {model_type} ---")
+                print(current_features.tolist())
+
+            if model_type in ["random_forest", "xgboost"]:
+                importance = classifier.feature_importances_
+                feature_importance_df = pd.DataFrame({'Feature': current_features, 'Importance': importance})
+                feature_importance_df.sort_values(by='Importance', ascending=False, inplace=True)
+                print(f"\n--- Feature Importances for {model_type} ---")
+                print(feature_importance_df.to_string())
+                #print("\n TAIL:", feature_importance_df.tail(20))
 
 
     # No grid search => fit baseline model 

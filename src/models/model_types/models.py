@@ -42,10 +42,10 @@ def get_hgb(): # sklearn LightGBM-like
 def get_base_model(model_type: str = "logistic"):
     '''
     Description
-        Wrapper function that creates a logistic regression or random forest model
+        Wrapper function that creates the base model for each type we implemented
         We can pass params that are used in the model creation; if no params are passed the necessary default values are used
     Params: 
-        model_type: str: selects the type of model (options: "logistic", "random_forest")
+        model_type: str: selects the type of model
     '''
     if model_type == "logistic":
         return get_logistic_regression()
@@ -61,20 +61,24 @@ def get_base_model(model_type: str = "logistic"):
         raise ValueError(f"Unknown model type: {model_type}")
     
 
-
 # --------------- GET MODEL AS PIPELINE ---------------
 
 def get_model(model_type:str): 
     '''
-    #TODO: Description 
+    Description: 
+        Another wrapper that we implemented so that our models are inside a sklearn pipeline. 
+        Pipelines enable the use of reliable sklearn moduls/library 
+            like the StandardSclara (scaling for logistic and knn), or RFE for feature selection
+    Params: 
+        model_type: str: selects the type of model
     '''
     if model_type in ["logistic"]:
         # Create a pipeline adds scaling to the model  (Custom standardization and Gridsearch might cause porblem => Use pipeline as sklearn takes care of that)
         pipeline = Pipeline([
-                ('scaler', StandardScaler()),
                 #('poly', PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)),          # polynomial features
+                ('scaler', StandardScaler()),
                 #('feature_selection', SelectKBest(score_func=f_classif)),                                               # feature selection
-                #('feature_selection', RFE(estimator=get_logistic_regression(), n_features_to_select=None, step=1)),     # feature selection - recursive feature elimination
+                ('feature_selection', RFE(estimator=get_logistic_regression(), n_features_to_select=None, step=1)),     # feature selection - recursive feature elimination
                 ('model', get_base_model(model_type=model_type))
             ])
     elif model_type in ["knn"]:
@@ -96,7 +100,7 @@ def get_model(model_type:str):
         # Wrapping in simple pipeline for consistency
         base_estimator = get_base_model(model_type=model_type)
         pipeline = Pipeline([
-            ('feature_selection', SelectFromModel(base_estimator)),            # feature selection
+            #('feature_selection', SelectFromModel(base_estimator)),            # feature selection
             ('model', base_estimator)
         ])
     else:
@@ -107,13 +111,19 @@ def get_model(model_type:str):
 # --------------- CONFIG PARAM GRID ---------------
 
 def get_param_grid(model_type:str):
+    '''
+    Description: 
+        Definition and configuartion of the parameter grids that are passed to GridSearch/RandomSearchCV for the search.
+        Additionally, as all models are wrapped inside a pipeline, we would also define necessary parameters here needed 
+            for other pipeline steps such as feature_selection. 
+    '''
     if model_type == "logistic":
         # Pipeline needed for scaling => must use 'model__' prefix
         return  [
             # 1. lbfgs (L2 only)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                         # feature selection
-                #"feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
+                #"feature_selection__k": [10, 15, 20, "all"],                                         # feature selection
+                "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                              # polynomial features
                 "model__solver": ["lbfgs"],
                 "model__penalty": ["l2"],
@@ -123,8 +133,8 @@ def get_param_grid(model_type:str):
             
             # 2. liblinear (L1 and L2))
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                          # feature selection
-                #"feature_selection__n_features_to_select": [None, 15, 20, 25, 30],              # recursive feature elimination
+                #"feature_selection__k": [10, 15, 20, "all"],                                          # feature selection
+                "feature_selection__n_features_to_select": [None, 10, 15, 20],              # recursive feature elimination
                 #"poly__degree": [1, 2],                                                               # polynomial features   
                 "model__solver": ["liblinear"],
                 "model__penalty": ["l1", "l2"],
@@ -134,8 +144,8 @@ def get_param_grid(model_type:str):
             
             # 3. Saga (L1 and L2)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                             # feature selection
-                #"feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
+                #"feature_selection__k": [10, 15, 20, "all"],                                             # feature selection
+                "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                              # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["l1", "l2"],
@@ -145,8 +155,8 @@ def get_param_grid(model_type:str):
             
             # 4. Saga (both L1 and L2 with elasticnet)
             {
-                #"feature_selection__k": [10, 15, 20, 25],                                           # feature selection
-                #"feature_selection__n_features_to_select": [None, 15, 20, 25, 30],               # recursive feature elimination
+                #"feature_selection__k": [10, 15, 20, "all"],                                           # feature selection
+                "feature_selection__n_features_to_select": [None, 10, 15, 20],               # recursive feature elimination
                 #"poly__degree": [1, 2],                                                                # polynomial features
                 "model__solver": ["saga"],
                 "model__penalty": ["elasticnet"],
@@ -159,7 +169,7 @@ def get_param_grid(model_type:str):
     elif model_type == "random_forest":
         # In pipeline for consistency
         return {
-            "feature_selection__threshold": ['mean', 'median', 0.01],                    # feature selection
+            #"feature_selection__threshold": ['mean', 'median', 0.01],                    # feature selection
             "model__n_estimators": [100, 200],
             "model__max_depth": [None, 10, 20, 40],
             "model__min_samples_split": [2, 5],
@@ -169,7 +179,7 @@ def get_param_grid(model_type:str):
     elif model_type == "xgboost": 
         # In pipeline for consistency
         return {
-            "feature_selection__threshold": ['mean', 'median', '0.01*mean'],                  # feature selection
+            #"feature_selection__threshold": ['mean', 'median', '0.01*mean'],                  # feature selection
             'model__n_estimators': [100, 200, 500, 1000],
             'model__learning_rate': [0.01, 0.05, 0.1, 0.2],
             'model__max_depth': [3, 5, 7, 9],

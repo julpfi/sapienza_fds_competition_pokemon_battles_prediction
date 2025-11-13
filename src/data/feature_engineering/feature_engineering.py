@@ -1,18 +1,17 @@
 import pandas as pd
 from .feature_selection import select_features
 
-from .features_version_1 import feature_engineering_version_1
-from .features_version_2 import feature_engineering_version_2
-from .features_version_3 import feature_engineering_version_3
-from .features_version_4 import feature_engineering_version_4
-from .features_version_5 import feature_engineering_version_5
 from .features_version_6 import feature_engineering_version_6
 from .features_version_7 import feature_engineering_version_7
-
 from .features_version_9 import feature_engineering_version_9
 from .features_version_10 import feature_engineering_version_10
 from .features_version_11 import feature_engineering_version_11
+<<<<<<< HEAD
 from .features_version_14 import feature_engineering_version_14
+=======
+from .features_version_12 import feature_engineering_version_12
+from .features_version_13 import feature_engineering_version_13
+>>>>>>> f7302ed7a7160a8bae249ee22485e3b191e7c290
 
 
 # try if works: from src.data.feature_engineering.features_version_1 import feature_engineering_version_1
@@ -23,17 +22,7 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
     if train and "player_won" not in battles.columns:
         raise KeyError("Expected player_won column in train data but was not found")
 
-    match version: 
-        case 1: 
-            features = feature_engineering_version_1(train, battles, turns, teams)
-        case 2: 
-            features = feature_engineering_version_2(train, battles, turns, teams)
-        case 3: 
-            features = feature_engineering_version_3(train, battles, turns, teams)   
-        case 4: 
-            features = feature_engineering_version_4(train, battles, turns, teams)  
-        case 5: 
-            features = feature_engineering_version_5(train, battles, turns, teams)       
+    match version:       
         case 6: 
             features = feature_engineering_version_6(train, battles, turns, teams)    
             features = select_features(
@@ -47,6 +36,7 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
             features = feature_engineering_version_10(train, battles, turns, teams)
         case 11:
             features = feature_engineering_version_11(train, battles, turns, teams)
+<<<<<<< HEAD
         case 14:
             pokedex = kwargs.get('pokemon_stats_map')
             default_stats = kwargs.get('default_pokemon_stats')
@@ -59,6 +49,12 @@ def feature_engineering(battles:pd.DataFrame, turns:pd.DataFrame, teams:pd.DataF
                 teams_df=teams,
                 pokemon_stats_map=kwargs.get('pokemon_stats_map', None),  
                 default_pokemon_stats=kwargs.get('default_pokemon_stats', None))
+=======
+        case 12:
+            features = feature_engineering_version_12(train, battles, turns, teams)
+        case 13:
+            features = feature_engineering_version_13(train, battles, turns, teams)
+>>>>>>> f7302ed7a7160a8bae249ee22485e3b191e7c290
         case _: 
             raise Exception("ERROR: Invalid selection of which set of features to use. \n -> feature_engineering.py")
         

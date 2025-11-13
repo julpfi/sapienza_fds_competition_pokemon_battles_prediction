@@ -107,54 +107,44 @@ def _create_timeline_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     # KO Advantage: Positive means P1 has an advantage (P2 has more KOs)
     ko_df['ko_advantage'] = ko_df['p2_ko_count'] - ko_df['p1_ko_count']
     
-    # --- HP % ---
-    
-    # 1. Get the last HP% for every pokemon that participated 
+    # HP %
+    # Get the last HP% for every pokemon that participated
     p1_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'], observed=False)['p1_pokemon_state_hp_pct'].last()
     p2_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'], observed=False)['p2_pokemon_state_hp_pct'].last()
     
-    # 2. Calculate average hp % 
+    # Calculate average hp %
     p1_team_avg_hp = p1_last_hp_per_pokemon.groupby('battle_id').mean()
     p1_team_avg_hp.name = 'p1_team_avg_hp'
     p2_team_avg_hp = p2_last_hp_per_pokemon.groupby('battle_id').mean()
     p2_team_avg_hp.name = 'p2_team_avg_hp'
     
-    # 3. Calculate total hp %     
-    # --- P1 SUM HP ---
-    p1_participating_sum_hp = p1_last_hp_per_pokemon.groupby('battle_id').sum()
-    p1_participating_count = p1_last_hp_per_pokemon.groupby('battle_id').size()
-    p1_non_participating_hp = (6 - p1_participating_count) * 1.0
-    p1_team_sum_hp = (p1_participating_sum_hp + p1_non_participating_hp)
+    # Calculate total hp %
+    p1_team_sum_hp = p1_last_hp_per_pokemon.groupby('battle_id').sum()
     p1_team_sum_hp.name = 'p1_team_sum_hp'
-
-    # --- P2 SUM HP ---
-    p2_participating_sum_hp = p2_last_hp_per_pokemon.groupby('battle_id').sum()
-    p2_participating_count = p2_last_hp_per_pokemon.groupby('battle_id').size()
-    p2_non_participating_hp = (6 - p2_participating_count) * 1.0
-    p2_team_sum_hp = (p2_participating_sum_hp + p2_non_participating_hp)
+    p2_team_sum_hp = p2_last_hp_per_pokemon.groupby('battle_id').sum()
     p2_team_sum_hp.name = 'p2_team_sum_hp'
 
-    # 4. Merge HP features 
+    # Start with avg
     hp_df = pd.merge(p1_team_avg_hp, p2_team_avg_hp, on='battle_id', how='outer')
+    # Add sum
     hp_df = pd.merge(hp_df, p1_team_sum_hp, on='battle_id', how='outer')
     hp_df = pd.merge(hp_df, p2_team_sum_hp, on='battle_id', how='outer')
     
-    # 5. FillNa 
-    hp_df['p1_team_avg_hp'] = hp_df['p1_team_avg_hp'].fillna(0.5) # (neutral)
-    hp_df['p2_team_avg_hp'] = hp_df['p2_team_avg_hp'].fillna(0.5) # (neutral)
-    
-    # If sum_hp is NaN, it means 0 participants. 
-    # The sum for both should be 6.0 (6 Pokemon at 100% HP).
-    hp_df['p1_team_sum_hp'] = hp_df['p1_team_sum_hp'].fillna(6.0) 
-    hp_df['p2_team_sum_hp'] = hp_df['p2_team_sum_hp'].fillna(6.0) 
+    # FillNa: 0.5 for AVG (neutral), 0.0 for SUM (no HP stat)
+    hp_df['p1_team_avg_hp'] = hp_df['p1_team_avg_hp'].fillna(0.5)
+    hp_df['p2_team_avg_hp'] = hp_df['p2_team_avg_hp'].fillna(0.5)
+    hp_df['p1_team_sum_hp'] = hp_df['p1_team_sum_hp'].fillna(0.0)
+    hp_df['p2_team_sum_hp'] = hp_df['p2_team_sum_hp'].fillna(0.0)
 
-    # 6. Create advantage features 
+    # Create advantage features
     hp_df['team_hp_advantage'] = hp_df['p1_team_avg_hp'] - hp_df['p2_team_avg_hp']
     hp_df['team_hp_sum_advantage'] = hp_df['p1_team_sum_hp'] - hp_df['p2_team_sum_hp']
     
-    # 7. Merge KO features and HP features (Unchanged)
+    # Merge KO features and HP features
     timeline_features_df = pd.merge(ko_df, hp_df, on='battle_id', how='outer')
     return timeline_features_df
+
+
 
 # 3 Satuts Pressure
 def _create_status_pressure_features(turns_df: pd.DataFrame) -> pd.DataFrame:
@@ -182,6 +172,14 @@ def _create_status_pressure_features(turns_df: pd.DataFrame) -> pd.DataFrame:
     status_df = pd.merge(status_df, p2_critical_status_turns, on='battle_id', how='outer')
     
     status_df = status_df.fillna(0).astype(int) 
+    return status_df
+    
+    # --- 5. Create Advantage (Difference) Features ---
+    # Positive = P1 advantage (P2 has more status turns)
+    status_df['major_status_advantage'] = status_df['p2_major_status_turns'] - status_df['p1_major_status_turns']
+    status_df['sleep_advantage'] = status_df['p2_sleep_turns'] - status_df['p1_sleep_turns']
+    status_df['freeze_advantage'] = status_df['p2_freeze_turns'] - status_df['p1_freeze_turns']
+    
     return status_df
 
 
@@ -445,7 +443,6 @@ def feature_engineering_version_10(
     # 10. Static interaction feature 
     print("Creating interaction feature (Speed x Type)...")
     final_df['speed_x_type_adv'] = final_df['lead_spe_advantage'] * final_df['type_matchup_diff']
-
 
     # ------------------------- Final Cleanup --------------------------
     lead_types_col = ['p1_lead_types', 'p2_lead_types'] 

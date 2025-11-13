@@ -180,6 +180,31 @@ def _create_dynamic_matchup_features(turns_df: pd.DataFrame, teams_df: pd.DataFr
     
     return dynamic_matchup_df
 
+# 4: FINAL HP% MOMENTUM
+
+def _create_final_turn_features(turns_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Extracts features from the last recorded turn of the battle (up to turn 30).
+    This captures the "final momentum" of the match.
+    """
+    # Get the index of the row corresponding to the last turn for each battle
+    # idxmax() is fast and robust for this operation
+    last_turn_indices = turns_df.groupby('battle_id')['turn'].idxmax()
+    
+    # Extract only the last turn rows and set battle_id as the index
+    last_turns_df = turns_df.loc[last_turn_indices].set_index('battle_id')
+    
+    # Calculate the feature: Active Pokemon HP Advantage
+    # If an HP were NaN (highly unlikely after cleaning), fillna(0.0) 
+    # ensures a missing pokemon is treated as fainted.
+    p1_hp = last_turns_df['p1_pokemon_state_hp_pct'].fillna(0.0)
+    p2_hp = last_turns_df['p2_pokemon_state_hp_pct'].fillna(0.0)
+    
+    # Create the final DataFrame to be returned
+    final_turn_features = pd.DataFrame(index=last_turns_df.index)
+    final_turn_features['final_active_hp_advantage'] = p1_hp - p2_hp
+    
+    return final_turn_features
 
 # MAIN ORCHESTRATOR FUNCTION 5
 
@@ -190,7 +215,7 @@ def feature_engineering_version_5(
     teams_df: pd.DataFrame
 ) -> pd.DataFrame:
     
-    # Creates the v5 feature set.
+    # Creates the v4 feature set.
     # Removed 0-importance features (Turn 1 switch/status, utility boosts).
     # Refined status features (major vs critical).
     
@@ -209,7 +234,7 @@ def feature_engineering_version_5(
     timeline_features = _create_timeline_features(turns_df)
     final_df = pd.merge(final_df, timeline_features, on='battle_id', how='left')
     
-    # 3. Status Pressure (Refined v5)
+    # 3. Status Pressure (Refined v4)
     print("Creating refined status pressure features...")
     status_features = _create_status_pressure_features_v4(turns_df)
     final_df = pd.merge(final_df, status_features, on='battle_id', how='left')
@@ -217,6 +242,11 @@ def feature_engineering_version_5(
     print("Creating Dynamic Matchup features...")
     dynamic_matchup_features = _create_dynamic_matchup_features(turns_df, teams_df)
     final_df = pd.merge(final_df, dynamic_matchup_features, on='battle_id', how='left')
+
+    # HP% final turn
+    print("Creating Final Turn (Momentum) features...")
+    final_turn_features = _create_final_turn_features(turns_df)
+    final_df = pd.merge(final_df, final_turn_features, on='battle_id', how='left')
     
     # 4. Static Differentials  
     print("Creating static lead matchup features...")
