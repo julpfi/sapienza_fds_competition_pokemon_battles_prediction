@@ -1,6 +1,13 @@
 # sapienza_fds_competition_pokemon_battles_prediction
 ## Team: Julius Pfingsten, Ludovico Piras, and Nicolò Boscherini
 
+## Workflow
+The main method in the src folder functions as the entrypoint for running the whole predicing pipeline. Therefore, it is calling the data pipeline, including loading, cleaning, and extracting, the feature engineering, the model training, including tuning and validating the model via GridSearch/RandomSearch, and if selected the prediction that also would save the submission. 
+Additionally, we use the analyze_feature method in src/data/feature_engineering to create the vif score and correlation heatmap. Any other exploration and testing was done in the notebook folder or in Kaggle notebooks. 
+
+## Accessing the Correct Submission
+During our work, the whole pipeline was improved iteretaivly on various points. To ensure that the accurate version for one submission can be found alter one, we thought of workflow step. Everytime, before predicting a new submission we will push the whole repository and ensure it is at the head of the main branch. Then, with the prediction, we will add a new file to the submission folder. That change is then pushed with the commit message "SUBMISSION <name of submission>" to ensure it can be found in the commit history. Although, this setup might not be perfect, it worked well as a simple workaround connect repo version with submission files. 
+
 ## Setting up Anaconda Environment
 
 ### 1. Create environment
