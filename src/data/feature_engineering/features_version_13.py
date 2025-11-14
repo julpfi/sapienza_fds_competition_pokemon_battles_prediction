@@ -923,6 +923,9 @@ def feature_engineering_version_13(
         'p1_ko_count',   # INF  #TEST
         'p2_ko_count',
         #'ko_advantage',   # INF  #TEST  SEE IF KO FEATURE IS STILL CONTAINED
+        #'p1_team_avg_hp',  # perfect collinearity  (we are using both averages and sum. I try with just the sum)
+        #'p2_team_avg_hp',  #perfect collinearity 
+        #'team_hp_advantage', #perfect collinearity 
     ]
 
     logistic_redundant_component_features = [

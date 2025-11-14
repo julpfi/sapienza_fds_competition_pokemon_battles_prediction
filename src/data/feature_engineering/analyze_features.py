@@ -5,10 +5,17 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tools.tools import add_constant
 import numpy as np
 
+# Imports for Model Training & AUC Plot 
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_curve, auc
+
+
 # Importing project's modules
 import src.data.load_data as load
 import src.data.clean_data as clean
 import src.data.feature_engineering.feature_engineering as feature_engineering
+
 
 # --- Analysis Function 1: Correlation Heatmap ---
 def plot_correlation_heatmap(X_df, save_path="correlation_heatmap.png"):
@@ -19,7 +26,6 @@ def plot_correlation_heatmap(X_df, save_path="correlation_heatmap.png"):
     print("\n[Analysis] Calculating correlation matrix...")
     
     # Calculate the correlation matrix
-    # Use 'spearman' for a more robust (non-linear) check, or 'pearson' for linear
     corr = X_df.corr(method='spearman')
     
     # Set up the matplotlib figure
@@ -34,12 +40,12 @@ def plot_correlation_heatmap(X_df, save_path="correlation_heatmap.png"):
     # Draw the heatmap
     sns.heatmap(
         corr,
-        mask=mask,         # Apply the mask
+        mask=mask,
         ax=ax,
-        cmap='vlag',       # Use a diverging colormap (blue-white-red)
-        vmin=-1, vmax=1,   # Set the min/max for the colormap
-        center=0,          # Center the colormap at 0
-        annot=False,       # Do not show numbers (too many features)
+        cmap='vlag',
+        vmin=-1, vmax=1,
+        center=0,
+        annot=False,
         square=True,
         linewidths=.5,
         cbar_kws={"shrink": .5}
@@ -54,28 +60,15 @@ def plot_correlation_heatmap(X_df, save_path="correlation_heatmap.png"):
 def calculate_vif(X_df):
     """
     Calculates the VIF for each feature in the DataFrame.
-    
-    A VIF > 5 is a sign of multicollinearity.
-    A VIF > 10 is a strong sign.
     """
     print("\n[Analysis] Calculating VIF scores...")
     
-    # Create a copy to avoid modifying the original dataframe
-    X_temp = X_df.copy()
-    
-    # VIF can't handle missing values, fill with 0 (or median/mean)
-    X_temp = X_temp.fillna(0)
-    
-    # VIF calculation requires a constant (intercept)
+    X_temp = X_df.copy().fillna(0)
     X_vals = add_constant(X_temp.values, prepend=True)
 
-    # Create a DataFrame to store the VIF scores
     vif_data = pd.DataFrame()
-    # Use the column names from the original DataFrame
     vif_data["feature"] = X_temp.columns
     
-    # Calculate VIF for each feature
-    # Note: We loop from 1 to skip the constant (at index 0)
     print("Calculating VIF for each feature. This may take a moment...")
     try:
         vif_data["VIF"] = [
@@ -84,22 +77,83 @@ def calculate_vif(X_df):
         ]
     except Exception as e:
         print(f"Error calculating VIF: {e}")
-        print("This can be due to perfect collinearity or columns of all zeros.")
         return None
 
-    # VIF will be 'inf' (infinite) for perfectly collinear features
     vif_sorted = vif_data.sort_values(by="VIF", ascending=False)
     
     print("\n--- Top 20 Highest VIF Scores ---")
     print(vif_sorted.head(20))
     
-    # Check for VIFs of infinity
     inf_vif = vif_sorted[vif_sorted['VIF'] == np.inf]
     if not inf_vif.empty:
         print("\n[WARNING] Perfect Collinearity Detected (VIF = inf):")
         print(inf_vif)
 
     return vif_sorted
+
+#  Analysis Function 3: AUC/ROC Plot 
+def plot_auc_roc_curve(X, y, save_path="auc_roc_plot.png"):
+    """
+    Trains a simple XGBoost model to generate and save an AUC/ROC plot.
+    Uses a train/test split to get a realistic score.
+    """
+    print("\n[Analysis] Generating AUC/ROC Plot...")
+    
+    # 1. Split data into temporary train/validation sets
+    # We use this split so the model doesn't predict on data it already saw
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, 
+        test_size=0.3,    # 30% for validation
+        random_state=42,  # for reproducibility
+        stratify=y        # Ensures win/loss ratio is same in both sets
+    )
+    
+    # 2. Train a basic XGBoost model
+    print("Training temporary XGBoost model for AUC...")
+    model = xgb.XGBClassifier(
+        random_state=42, 
+        eval_metric='logloss',
+        use_label_encoder=False # Suppress warning
+    )
+    model.fit(X_train, y_train)
+    
+    # 3. Get predicted probabilities for the validation set
+    # We need the probability of the "positive" class (player_won=1)
+    y_pred_proba = model.predict_proba(X_val)[:, 1]
+    
+    # 4. Calculate ROC curve data
+    fpr, tpr, _ = roc_curve(y_val, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+    
+    # 5. Plot
+    plt.figure(figsize=(10, 8))
+    plt.plot(
+        fpr, 
+        tpr, 
+        color='darkorange', 
+        lw=2, 
+        label=f'XGBoost ROC curve (AUC = {roc_auc:.3f})'
+    )
+    plt.plot(
+        [0, 1], 
+        [0, 1], 
+        color='navy', 
+        lw=2, 
+        linestyle='--',
+        label='Random Guess'
+    )
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate', fontsize=12)
+    plt.ylabel('True Positive Rate', fontsize=12)
+    plt.title('Receiver Operating Characteristic (ROC) Curve', fontsize=16)
+    plt.legend(loc="lower right", fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    
+    plt.savefig(save_path, dpi=300)
+    print(f"[Analysis] AUC/ROC plot saved to {save_path}")
+# --- End of new function ---
 
 
 if __name__ == "__main__":
@@ -109,24 +163,33 @@ if __name__ == "__main__":
     version = int(input("Select the feature engineering version to analyze:\n>>> ").strip())
 
     # ----------------------------------------------------------------------------------------
-    # 1.1.  Load and clean train data (we only need train data for analysis)
+    # 1.1.  Load and clean train data
     print("Loading training data...")
     raw_train_data = load.load_data(train=True)
     battles_train, turns_train, teams_train = clean.clean_data(raw_data=raw_train_data, train=True)
 
-    # 1.2. Create features for train data
+    # 1.2a. FIX: Create Pokedex map if needed (for v14+)
+    # This was causing the error in your provided code
+    pokemon_stats_map = None
+    default_pokemon_stats = None
+    if version >= 14: # Assuming v14+ needs this
+        print("Creating Pokemon stats map...")
+        pokemon_stats_map, default_pokemon_stats = _create_pokemon_stats_map(teams_train)
+    
+    # 1.2b. Create features for train data
     print(f"Running feature engineering version {version}...")
     features_train = feature_engineering.feature_engineering(
         battles=battles_train,
         turns=turns_train,
         teams=teams_train,
         version=version,
-        train=True)
+        train=True,
+        )
 
     # 1.3. Prepare data for analysis
-    # We want to check all features *before* dropping any
-    # Renamed this variable from X_features to X_train to match your main.py
-    print("Preparing feature DataFrame X_train...")
+    print("Preparing feature DataFrames X and y...")
+    # --- ADDED: Create y_train ---
+    y_train = features_train["player_won"]
     X_train = features_train.drop(columns=["player_won", "battle_id"], errors='ignore')
 
     print(f"Analysis will be run on {len(X_train.columns)} features.")
@@ -135,12 +198,33 @@ if __name__ == "__main__":
     # 2. Run Analyses
 
     # 2.1. Correlation Heatmap
-    # Pass X_train to the function
     plot_correlation_heatmap(X_train, save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_correlation_heatmap.png")
 
     # 2.2. VIF Calculation
-    # Pass X_train to the function
     vif_scores = calculate_vif(X_train)
+    
+    # --- NEW: 2.3. Plot AUC/ROC Curve ---
+    # We train the model on a "clean" set of features for a more realistic plot
+    # These are the components that cause 'inf' VIF scores
+    features_to_drop_for_model = [
+        'p1_ko_count', 'p2_ko_count',
+        'p1_pokemon_left', 'p2_pokemon_left',
+        'p1_team_avg_hp', 'p2_team_avg_hp',
+        'p1_team_sum_hp', 'p2_team_sum_hp'
+    ]
+    
+    # Create a clean DataFrame for the model
+    X_train_clean_for_model = X_train.drop(columns=features_to_drop_for_model, errors='ignore')
+    
+    print(f"\n[Analysis] Using {len(X_train_clean_for_model.columns)} 'clean' features for AUC plot model.")
+    
+    # Call the new function
+    plot_auc_roc_curve(
+        X_train_clean_for_model, 
+        y_train, 
+        save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_auc_roc_plot.png"
+    )
+    # --- End of new section ---
     
     if vif_scores is not None:
         vif_scores.to_csv(f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_vif_scores.csv", index=False)

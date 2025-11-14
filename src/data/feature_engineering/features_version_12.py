@@ -7,8 +7,6 @@ from src.utils.config import POKEMON_TYPES
 # -------------------------------------------- Helper Methods  -----------------------------------------------
 
 
-
-
 def _get_type_multiplier(move_type: str, target_types: list) -> float:
     # Calculates the damage multiplier for a move against a target's types 
     type_chart = {
@@ -135,62 +133,6 @@ def _create_timeline_features_ko(turns_df: pd.DataFrame) -> pd.DataFrame:
     ko_df['ko_advantage'] = ko_df['p2_ko_count'] - ko_df['p1_ko_count']
     return ko_df
 
-
-# 2 Timlime Features: KO and HP% 
-def _create_timeline_features(turns_df: pd.DataFrame) -> pd.DataFrame:
-    # Creates aggregated KO and HP % features from the timeline.
-    # Includes both team average HP (relative) and team sum HP (total) as well as ko counts and ko advantage
-
-    
-    # --- HP % ---
-    
-    # 1. Get the last HP% for every pokemon that participated 
-    p1_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p1_pokemon_state_name'], observed=False)['p1_pokemon_state_hp_pct'].last()
-    p2_last_hp_per_pokemon = turns_df.groupby(['battle_id', 'p2_pokemon_state_name'], observed=False)['p2_pokemon_state_hp_pct'].last()
-    
-    # 2. Calculate average hp % 
-    p1_team_avg_hp = p1_last_hp_per_pokemon.groupby('battle_id').mean()
-    p1_team_avg_hp.name = 'p1_team_avg_hp'
-    p2_team_avg_hp = p2_last_hp_per_pokemon.groupby('battle_id').mean()
-    p2_team_avg_hp.name = 'p2_team_avg_hp'
-    
-    # 3. Calculate total hp %     
-    # --- P1 SUM HP ---
-    p1_participating_sum_hp = p1_last_hp_per_pokemon.groupby('battle_id').sum()
-    p1_participating_count = p1_last_hp_per_pokemon.groupby('battle_id').size()
-    p1_non_participating_hp = (6 - p1_participating_count) * 1.0
-    p1_team_sum_hp = (p1_participating_sum_hp + p1_non_participating_hp)
-    p1_team_sum_hp.name = 'p1_team_sum_hp'
-
-    # --- P2 SUM HP ---
-    p2_participating_sum_hp = p2_last_hp_per_pokemon.groupby('battle_id').sum()
-    p2_participating_count = p2_last_hp_per_pokemon.groupby('battle_id').size()
-    p2_non_participating_hp = (6 - p2_participating_count) * 1.0
-    p2_team_sum_hp = (p2_participating_sum_hp + p2_non_participating_hp)
-    p2_team_sum_hp.name = 'p2_team_sum_hp'
-
-
-
-    # 4. Merge HP features 
-    hp_df = pd.merge(p1_team_avg_hp, p2_team_avg_hp, on='battle_id', how='outer')
-    hp_df = pd.merge(hp_df, p1_team_sum_hp, on='battle_id', how='outer')
-    hp_df = pd.merge(hp_df, p2_team_sum_hp, on='battle_id', how='outer')
-    
-    # 5. FillNa 
-    hp_df['p1_team_avg_hp'] = hp_df['p1_team_avg_hp'].fillna(0.5) # (neutral)
-    hp_df['p2_team_avg_hp'] = hp_df['p2_team_avg_hp'].fillna(0.5) # (neutral)
-    
-    # If sum_hp is NaN, it means 0 participants. 
-    # The sum for both should be 6.0 (6 Pokemon at 100% HP).
-    hp_df['p1_team_sum_hp'] = hp_df['p1_team_sum_hp'].fillna(6.0) 
-    hp_df['p2_team_sum_hp'] = hp_df['p2_team_sum_hp'].fillna(6.0) 
-
-    # 6. Create advantage features 
-    hp_df['team_hp_advantage'] = hp_df['p1_team_avg_hp'] - hp_df['p2_team_avg_hp']
-    hp_df['team_hp_sum_advantage'] = hp_df['p1_team_sum_hp'] - hp_df['p2_team_sum_hp']
-    
-
-    return hp_df
 
 def _create_timeline_features_hp(turns_df: pd.DataFrame, teams_df: pd.DataFrame, battles_df: pd.DataFrame) -> pd.DataFrame: 
     # Get HP stats for all pokemon  (participated in turns)
@@ -786,10 +728,6 @@ def feature_engineering_version_12(
     timeline_hp_features = _create_timeline_features_hp(turns_df=turns_df, teams_df=teams_df, battles_df=battles_df)
     final_df = pd.merge(final_df, timeline_ko_features, on='battle_id', how='left')
     final_df = pd.merge(final_df, timeline_hp_features, on='battle_id', how='left')
-
-    # 2. Integrate Dynamic Features - From version 10 - second hp part
-    timeline_features = _create_timeline_features(turns_df)
-    final_df = pd.merge(final_df, timeline_features, on='battle_id', how='left')
     
     # 3. Status Pressure
     print("Creating status pressure features...")
@@ -923,13 +861,6 @@ def feature_engineering_version_12(
         'p1_ko_count',   # INF  #TEST
         'p2_ko_count',
         #'ko_advantage',   # INF  #TEST  SEE IF KO FEATURE IS STILL CONTAINED
-
-
-        # Added these from v13 on 
-        #'p1_team_avg_hp',
-        #'p2_team_avg_hp',
-        'p1_team_sum_hp',
-        'p2_team_sum_hp',
     ]
 
     logistic_redundant_component_features = [

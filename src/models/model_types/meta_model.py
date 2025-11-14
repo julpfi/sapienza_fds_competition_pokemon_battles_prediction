@@ -18,14 +18,18 @@ def train_meta_model(X: pd.DataFrame, y: pd.Series, model_names: list,) -> BaseE
     outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)  
 
     print("Getting best params for each base learner...")
-    base_models = {}
+    best_params = {}
     for name in model_names:
         model = get_model(name)
         param_grid = get_param_grid(name)
-        best_model, _ = perform_grid_search(model, X, y, param_grid, model_type=name)
-        base_models[name] = best_model
-    
-    estimators = [(name, base_models[name]) for name in model_names]
+        _, params = perform_grid_search(model, X, y, param_grid, model_type=name)
+        best_params[name] = params
+
+    estimators = []
+    for name in model_names:
+        model = get_model(name)
+        model.set_params(**best_params[name])   # <-- apply tuned hyperparams only
+        estimators.append((name, model))        # <-- unfitted, clean model
     
     meta_model = LogisticRegression(max_iter=1000)
     
