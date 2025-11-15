@@ -1,15 +1,39 @@
+
+#This script is a standalone tool for analyzing the feature engineering versions.
+#It performs:
+#1. Correlation Heatmap (Spearman)
+#2. Variance Inflation Factor (VIF) Analysis (to detect collinearity)
+#3. AUC/ROC Plot (based on XGBoost performance)
+
+#=============================================================================
+ #IMPORTANT                                       
+# This script is designed to work with feature engineering versions 6-13.  
+#                                                                        
+# It will NOT run with version 14                             
+#                                                                        
+
+
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tools.tools import add_constant
 import numpy as np
+import sys # <-- ADDED THIS IMPORT
 
-# Imports for Model Training & AUC Plot 
+# --- New Imports for Model Training & AUC Plot ---
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
+# -------------------------------------------------
 
+# --- NEW Imports for Meta-Model ---
+from sklearn.ensemble import StackingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+# ----------------------------------
 
 # Importing project's modules
 import src.data.load_data as load
@@ -91,7 +115,7 @@ def calculate_vif(X_df):
 
     return vif_sorted
 
-#  Analysis Function 3: AUC/ROC Plot 
+# --- Analysis Function 3: Simple XGBoost AUC/ROC Plot ---
 def plot_auc_roc_curve(X, y, save_path="auc_roc_plot.png"):
     """
     Trains a simple XGBoost model to generate and save an AUC/ROC plot.
@@ -153,6 +177,103 @@ def plot_auc_roc_curve(X, y, save_path="auc_roc_plot.png"):
     
     plt.savefig(save_path, dpi=300)
     print(f"[Analysis] AUC/ROC plot saved to {save_path}")
+# --- End of function ---
+
+
+# --- NEW Analysis Function 4: Meta-Model AUC/ROC Plot ---
+def plot_meta_model_auc_roc_curve(X, y, save_path="meta_auc_roc_plot.png"):
+    """
+    Trains a StackingClassifier (LR+KNN+XGB) to generate and save an
+    AUC/ROC plot. Uses default parameters for the base models.
+    """
+    print("\n[Analysis] Generating Meta-Model AUC/ROC Plot...")
+    
+    # 1. Split data into temporary train/validation sets
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, 
+        test_size=0.3,    # 30% for validation
+        random_state=42,  # for reproducibility
+        stratify=y        # Ensures win/loss ratio is same in both sets
+    )
+    
+    # 2. Define Base Estimators (using defaults, as we can't grid search here)
+    # We must scale data for LR and KNN
+    
+    # LR Pipeline
+    lr_pipe = Pipeline([
+        ('scaler', StandardScaler()),
+        ('model', LogisticRegression(random_state=42, max_iter=1000, solver='liblinear'))
+    ])
+    
+    # KNN Pipeline
+    knn_pipe = Pipeline([
+        ('scaler', StandardScaler()),
+        ('model', KNeighborsClassifier()) # n_neighbors=5 (default)
+    ])
+
+    # XGB Model (no scaling needed)
+    xgb_model = xgb.XGBClassifier(
+        random_state=42, 
+        eval_metric='logloss',
+        use_label_encoder=False
+    )
+
+    estimators = [
+        ('lr', lr_pipe),
+        ('knn', knn_pipe),
+        ('xgb', xgb_model)
+    ]
+    
+    # 3. Define the Stacking Classifier
+    # This is the 'meta_model'
+    meta_estimator = LogisticRegression(max_iter=1000)
+    
+    stacking_model = StackingClassifier(
+        estimators=estimators,
+        final_estimator=meta_estimator,
+        cv=5, # Use 5-fold CV on the training data, as in your code
+        n_jobs=-1
+    )
+    
+    # 4. Train the Stacker
+    print("Training temporary StackingClassifier for AUC...")
+    stacking_model.fit(X_train, y_train)
+    
+    # 5. Get probabilities for the validation set
+    y_pred_proba = stacking_model.predict_proba(X_val)[:, 1]
+    
+    # 6. Calculate ROC curve data
+    fpr, tpr, _ = roc_curve(y_val, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+    
+    # 7. Plot
+    plt.figure(figsize=(10, 8))
+    plt.plot(
+        fpr, 
+        tpr, 
+        color='darkorange', 
+        lw=2, 
+        label=f'Meta-Model ROC curve (AUC = {roc_auc:.3f})'
+    )
+    plt.plot(
+        [0, 1], 
+        [0, 1], 
+        color='navy', 
+        lw=2, 
+        linestyle='--',
+        label='Random Guess'
+    )
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate', fontsize=12)
+    plt.ylabel('True Positive Rate', fontsize=12)
+    plt.title('Meta-Model Receiver Operating Characteristic (ROC) Curve', fontsize=16)
+    plt.legend(loc="lower right", fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    
+    plt.savefig(save_path, dpi=300)
+    print(f"[Analysis] Meta-Model AUC/ROC plot saved to {save_path}")
 # --- End of new function ---
 
 
@@ -162,28 +283,34 @@ if __name__ == "__main__":
     # 0. Config
     version = int(input("Select the feature engineering version to analyze:\n>>> ").strip())
 
+    # --- NEW: Add check for version 14+ ---
+    if version >= 14 or version == 5:
+        print("\n[ANALYSIS NOTE]")
+        print("="*60)
+        print(f"You selected Version {version}.")
+        print("This standalone analysis script is designed for versions 6-13.")
+        print("="*60)
+        sys.exit() # Exit the script gracefully
+    # --- END NEW SECTION ---
+
     # ----------------------------------------------------------------------------------------
     # 1.1.  Load and clean train data
     print("Loading training data...")
     raw_train_data = load.load_data(train=True)
     battles_train, turns_train, teams_train = clean.clean_data(raw_data=raw_train_data, train=True)
 
-    # 1.2a. FIX: Create Pokedex map if needed (for v14+)
-    # This was causing the error in your provided code
-    pokemon_stats_map = None
-    default_pokemon_stats = None
-    if version >= 14: # Assuming v14+ needs this
-        print("Creating Pokemon stats map...")
-        pokemon_stats_map, default_pokemon_stats = _create_pokemon_stats_map(teams_train)
-    
-    # 1.2b. Create features for train data
+    # 1.2. Create features for train data
     print(f"Running feature engineering version {version}...")
+    
+    # --- FIX: Reverted to the simpler feature engineering call ---
+    # The v14+ logic was buggy and has been replaced by the
+    # check above.
     features_train = feature_engineering.feature_engineering(
         battles=battles_train,
         turns=turns_train,
         teams=teams_train,
         version=version,
-        train=True,
+        train=True
         )
 
     # 1.3. Prepare data for analysis
@@ -203,7 +330,7 @@ if __name__ == "__main__":
     # 2.2. VIF Calculation
     vif_scores = calculate_vif(X_train)
     
-    # --- NEW: 2.3. Plot AUC/ROC Curve ---
+    # --- 2.3. Create a clean DataFrame for modeling ---
     # We train the model on a "clean" set of features for a more realistic plot
     # These are the components that cause 'inf' VIF scores
     features_to_drop_for_model = [
@@ -216,13 +343,20 @@ if __name__ == "__main__":
     # Create a clean DataFrame for the model
     X_train_clean_for_model = X_train.drop(columns=features_to_drop_for_model, errors='ignore')
     
-    print(f"\n[Analysis] Using {len(X_train_clean_for_model.columns)} 'clean' features for AUC plot model.")
+    print(f"\n[Analysis] Using {len(X_train_clean_for_model.columns)} 'clean' features for AUC plot models.")
     
-    # Call the new function
+    # --- 2.4. Plot Simple XGBoost AUC (for feature analysis) ---
     plot_auc_roc_curve(
         X_train_clean_for_model, 
         y_train, 
-        save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_auc_roc_plot.png"
+        save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_XGB_auc_roc_plot.png"
+    )
+    
+    # --- 2.5. NEW: Plot Meta-Model AUC (for final report) ---
+    plot_meta_model_auc_roc_curve(
+        X_train_clean_for_model,
+        y_train,
+        save_path=f"src/data/feature_engineering/analyze_features_outputs/feature_v{version}_META_auc_roc_plot.png"
     )
     # --- End of new section ---
     
