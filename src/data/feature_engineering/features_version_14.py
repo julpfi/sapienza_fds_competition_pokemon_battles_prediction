@@ -1155,7 +1155,7 @@ def feature_engineering_version_14(
         'p2_ko_count',
         #'p1_team_avg_hp', #VIF = inf
         #'p2_team_avg_hp', #VIF= inf
-        'team_hp_advantage', #VIF =inf
+        #'team_hp_advantage', #VIF =inf
 
         #'ko_advantage',   # INF  #TEST  SEE IF KO FEATURE IS STILL CONTAINED
     ]
